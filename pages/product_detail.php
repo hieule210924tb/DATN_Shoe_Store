@@ -285,9 +285,11 @@ include dirname(__DIR__) . '/includes/header.php';
                 <h2>Sản Phẩm Liên Quan</h2>
             </div>
             <div class="row g-4">
-                <?php foreach ($relatedProducts as $product): ?>
-                    <?php include dirname(__DIR__) . '/includes/product_card.php'; ?>
-                <?php endforeach; ?>
+            <?php $originalProduct = $product; ?>
+            <?php foreach ($relatedProducts as $product): ?>
+                <?php include dirname(__DIR__) . '/includes/product_card.php'; ?>
+            <?php endforeach; ?>
+            <?php $product = $originalProduct; ?>
             </div>
         </div>
         <?php endif; ?>
@@ -398,7 +400,7 @@ function addProductToCart() {
         return;
     }
     const qty = parseInt(document.getElementById('qtyInput').value);
-    addToCart(<?php echo $product['id']; ?>, selectedVariantId, qty);
+    addToCart(<?php echo $product['id']; ?>, parseInt(selectedVariantId), qty);
 }
 </script>
 
