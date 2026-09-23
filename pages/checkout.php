@@ -1,0 +1,321 @@
+<?php
+/**
+ * Trang thanh toán - WinK Shoe Store
+ */
+require_once dirname(__DIR__) . '/config/config.php';
+require_once dirname(__DIR__) . '/includes/auth_check.php';
+
+$pdo = getDBConnection();
+$userId = getCurrentUserId();
+
+// Lấy giỏ hàng
+$stmt = $pdo->prepare("SELECT id FROM carts WHERE user_id = ?");
+$stmt->execute([$userId]);
+$cart = $stmt->fetch();
+
+if (!$cart) {
+    setFlashMessage('warning', 'Giỏ hàng trống.');
+    redirect(url('pages/products.php'));
+}
+
+$stmt = $pdo->prepare("
+    SELECT ci.*, p.name, p.slug, pv.size, pv.color, pv.stock_quantity,
+           pi.image_path
+    FROM cart_items ci
+    INNER JOIN products p ON ci.product_id = p.id
+    INNER JOIN product_variants pv ON ci.variant_id = pv.id
+    LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
+    WHERE ci.cart_id = ?
+");
+$stmt->execute([$cart['id']]);
+$cartItems = $stmt->fetchAll();
+
+if (empty($cartItems)) {
+    setFlashMessage('warning', 'Giỏ hàng trống.');
+    redirect(url('pages/products.php'));
+}
+
+$subtotal = 0;
+foreach ($cartItems as $item) {
+    $subtotal += $item['price'] * $item['quantity'];
+}
+
+$shippingFee = SHIPPING_FEE_EXPRESS;
+if ($subtotal >= 300000) {
+    $shippingFee = 0; // Miễn phí ship cho đơn >= 300K
+}
+
+// Lấy thông tin user
+$stmtUser = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+$stmtUser->execute([$userId]);
+$user = $stmtUser->fetch();
+
+// Lấy voucher hiện có
+$vouchers = $pdo->query("SELECT * FROM vouchers WHERE status = 'active' AND start_date <= NOW() AND end_date >= NOW() AND (usage_limit = 0 OR used_count < usage_limit)")->fetchAll();
+
+$errors = [];
+$voucherDiscount = 0;
+$appliedVoucher = null;
+
+// Xử lý đặt hàng
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $fullName = trim($_POST['full_name'] ?? '');
+    $phone = trim($_POST['phone'] ?? '');
+    $city = trim($_POST['city'] ?? '');
+    $address = trim($_POST['address'] ?? '');
+    $paymentMethod = $_POST['payment_method'] ?? 'cod';
+    $voucherCode = trim($_POST['voucher_code'] ?? '');
+    $note = trim($_POST['note'] ?? '');
+    
+    // Validate
+    if (empty($fullName)) $errors['full_name'] = 'Vui lòng nhập họ tên.';
+    if (empty($phone)) $errors['phone'] = 'Vui lòng nhập số điện thoại.';
+    elseif (!isValidPhone($phone)) $errors['phone'] = 'Số điện thoại không hợp lệ.';
+    if (empty($city)) $errors['city'] = 'Vui lòng nhập tỉnh/thành phố.';
+    if (empty($address)) $errors['address'] = 'Vui lòng nhập địa chỉ.';
+    
+    // Áp dụng voucher
+    if (!empty($voucherCode)) {
+        $stmtV = $pdo->prepare("SELECT * FROM vouchers WHERE code = ? AND status = 'active' AND start_date <= NOW() AND end_date >= NOW()");
+        $stmtV->execute([$voucherCode]);
+        $voucher = $stmtV->fetch();
+        
+        if (!$voucher) {
+            $errors['voucher'] = 'Mã giảm giá không hợp lệ hoặc đã hết hạn.';
+        } elseif ($voucher['usage_limit'] > 0 && $voucher['used_count'] >= $voucher['usage_limit']) {
+            $errors['voucher'] = 'Mã giảm giá đã hết lượt sử dụng.';
+        } elseif ($subtotal < $voucher['min_order_amount']) {
+            $errors['voucher'] = 'Đơn hàng chưa đạt giá trị tối thiểu ' . formatPrice($voucher['min_order_amount']);
+        } else {
+            $appliedVoucher = $voucher;
+            if ($voucher['discount_type'] === 'percentage') {
+                $voucherDiscount = $subtotal * $voucher['discount_value'] / 100;
+                if ($voucher['max_discount'] && $voucherDiscount > $voucher['max_discount']) {
+                    $voucherDiscount = $voucher['max_discount'];
+                }
+            } else {
+                $voucherDiscount = $voucher['discount_value'];
+            }
+        }
+    }
+    
+    $totalAmount = $subtotal + $shippingFee - $voucherDiscount;
+    if ($totalAmount < 0) $totalAmount = 0;
+    
+    if (empty($errors)) {
+        try {
+            $pdo->beginTransaction();
+            
+            // Tạo đơn hàng
+            $orderCode = generateOrderCode();
+            $stmtOrder = $pdo->prepare("
+                INSERT INTO orders (user_id, order_code, full_name, phone, city, address, note, 
+                    subtotal, shipping_fee, discount_amount, voucher_id, total_amount, 
+                    payment_method, payment_status, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'unpaid', 'pending')
+            ");
+            $stmtOrder->execute([
+                $userId, $orderCode, $fullName, $phone, $city, $address, $note,
+                $subtotal, $shippingFee, $voucherDiscount, 
+                $appliedVoucher ? $appliedVoucher['id'] : null, 
+                $totalAmount, $paymentMethod
+            ]);
+            $orderId = $pdo->lastInsertId();
+            
+            // Thêm order items
+            foreach ($cartItems as $item) {
+                $pdo->prepare("
+                    INSERT INTO order_items (order_id, product_id, variant_id, product_name, size, color, quantity, price)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ")->execute([
+                    $orderId, $item['product_id'], $item['variant_id'],
+                    $item['name'], $item['size'], $item['color'],
+                    $item['quantity'], $item['price']
+                ]);
+                
+                // Giảm tồn kho
+                $pdo->prepare("UPDATE product_variants SET stock_quantity = stock_quantity - ? WHERE id = ?")
+                    ->execute([$item['quantity'], $item['variant_id']]);
+                    
+                // Tăng số lượng đã bán
+                $pdo->prepare("UPDATE products SET total_sold = total_sold + ? WHERE id = ?")
+                    ->execute([$item['quantity'], $item['product_id']]);
+            }
+            
+            // Cập nhật voucher
+            if ($appliedVoucher) {
+                $pdo->prepare("UPDATE vouchers SET used_count = used_count + 1 WHERE id = ?")
+                    ->execute([$appliedVoucher['id']]);
+            }
+            
+            // Xóa giỏ hàng
+            $pdo->prepare("DELETE FROM cart_items WHERE cart_id = ?")->execute([$cart['id']]);
+            
+            $pdo->commit();
+            
+            setFlashMessage('success', "Đặt hàng thành công! Mã đơn hàng: $orderCode");
+            redirect(url('pages/order_detail.php?id=' . $orderId));
+            
+        } catch (Exception $ex) {
+            $pdo->rollBack();
+            $errors['general'] = 'Có lỗi xảy ra. Vui lòng thử lại.';
+        }
+    }
+}
+
+$pageTitle = 'Thanh toán - WinK Shoe Store';
+include dirname(__DIR__) . '/includes/header.php';
+?>
+
+<div class="wink-breadcrumb">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="<?php echo url('index.php'); ?>">Trang chủ</a></li>
+                <li class="breadcrumb-item"><a href="<?php echo url('pages/cart.php'); ?>">Giỏ hàng</a></li>
+                <li class="breadcrumb-item active">Thanh toán</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<section class="section-padding" style="padding-top: 30px;">
+    <div class="container">
+        <h4 class="fw-bold mb-4"><i class="fas fa-credit-card me-2"></i>Thanh toán</h4>
+        
+        <?php if (!empty($errors['general'])): ?>
+            <div class="alert alert-danger"><?php echo e($errors['general']); ?></div>
+        <?php endif; ?>
+        
+        <form method="POST">
+            <div class="row g-4">
+                <!-- Thông tin giao hàng -->
+                <div class="col-lg-7">
+                    <div class="bg-white rounded-3 shadow-sm p-4 mb-4">
+                        <h5 class="fw-bold mb-3"><i class="fas fa-truck me-2" style="color:var(--primary);"></i>Thông tin giao hàng</h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Họ và tên <span class="text-danger">*</span></label>
+                                <input type="text" name="full_name" class="form-control <?php echo !empty($errors['full_name']) ? 'is-invalid' : ''; ?>" 
+                                       value="<?php echo e($_POST['full_name'] ?? $user['full_name']); ?>" required>
+                                <?php if (!empty($errors['full_name'])): ?><div class="invalid-feedback"><?php echo e($errors['full_name']); ?></div><?php endif; ?>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                                <input type="tel" name="phone" class="form-control <?php echo !empty($errors['phone']) ? 'is-invalid' : ''; ?>" 
+                                       value="<?php echo e($_POST['phone'] ?? $user['phone']); ?>" required>
+                                <?php if (!empty($errors['phone'])): ?><div class="invalid-feedback"><?php echo e($errors['phone']); ?></div><?php endif; ?>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Tỉnh/Thành phố <span class="text-danger">*</span></label>
+                                <input type="text" name="city" class="form-control <?php echo !empty($errors['city']) ? 'is-invalid' : ''; ?>" 
+                                       value="<?php echo e($_POST['city'] ?? $user['city'] ?? ''); ?>" required>
+                                <?php if (!empty($errors['city'])): ?><div class="invalid-feedback"><?php echo e($errors['city']); ?></div><?php endif; ?>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Địa chỉ chi tiết <span class="text-danger">*</span></label>
+                                <textarea name="address" class="form-control <?php echo !empty($errors['address']) ? 'is-invalid' : ''; ?>" rows="2" required><?php echo e($_POST['address'] ?? $user['address'] ?? ''); ?></textarea>
+                                <?php if (!empty($errors['address'])): ?><div class="invalid-feedback"><?php echo e($errors['address']); ?></div><?php endif; ?>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Ghi chú</label>
+                                <textarea name="note" class="form-control" rows="2" placeholder="VD: Giao giờ hành chính..."><?php echo e($_POST['note'] ?? ''); ?></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Phương thức thanh toán -->
+                    <div class="bg-white rounded-3 shadow-sm p-4">
+                        <h5 class="fw-bold mb-3"><i class="fas fa-wallet me-2" style="color:var(--primary);"></i>Phương thức thanh toán</h5>
+                        <div class="d-flex flex-column gap-2">
+                            <label class="d-flex align-items-center gap-3 p-3 rounded-3 border" style="cursor:pointer;">
+                                <input type="radio" name="payment_method" value="cod" checked class="form-check-input">
+                                <i class="fas fa-money-bill-wave fa-lg" style="color:#28a745;"></i>
+                                <div>
+                                    <strong>Thanh toán khi nhận hàng (COD)</strong>
+                                    <br><small class="text-muted">Thanh toán bằng tiền mặt khi nhận hàng</small>
+                                </div>
+                            </label>
+                            <label class="d-flex align-items-center gap-3 p-3 rounded-3 border" style="cursor:pointer;">
+                                <input type="radio" name="payment_method" value="vnpay" class="form-check-input">
+                                <i class="fas fa-credit-card fa-lg" style="color:#0066b3;"></i>
+                                <div>
+                                    <strong>VNPay</strong>
+                                    <br><small class="text-muted">Thanh toán qua ví VNPay / ATM / Visa</small>
+                                </div>
+                            </label>
+                            <label class="d-flex align-items-center gap-3 p-3 rounded-3 border" style="cursor:pointer;">
+                                <input type="radio" name="payment_method" value="momo" class="form-check-input">
+                                <i class="fas fa-mobile-alt fa-lg" style="color:#a50064;"></i>
+                                <div>
+                                    <strong>MoMo</strong>
+                                    <br><small class="text-muted">Thanh toán qua ví điện tử MoMo</small>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Order Summary -->
+                <div class="col-lg-5">
+                    <div class="bg-white rounded-3 shadow-sm p-4" style="position:sticky;top:90px;">
+                        <h5 class="fw-bold mb-3">Đơn hàng (<?php echo count($cartItems); ?> sản phẩm)</h5>
+                        
+                        <!-- Items -->
+                        <?php foreach ($cartItems as $item): ?>
+                        <div class="d-flex gap-3 mb-3 pb-3" style="border-bottom:1px solid var(--gray-200);">
+                            <img src="<?php echo !empty($item['image_path']) ? PRODUCT_UPLOAD_URL . '/' . e($item['image_path']) : asset('images/default/no-product.png'); ?>" 
+                                 style="width:55px;height:55px;object-fit:cover;border-radius:6px;">
+                            <div class="flex-grow-1">
+                                <div class="fw-semibold" style="font-size:13px;"><?php echo e(mb_substr($item['name'], 0, 40)); ?></div>
+                                <small class="text-muted"><?php echo e($item['size']); ?> / <?php echo e($item['color']); ?> x<?php echo $item['quantity']; ?></small>
+                            </div>
+                            <div class="fw-bold" style="color:var(--primary);font-size:14px;white-space:nowrap;"><?php echo formatPrice($item['price'] * $item['quantity']); ?></div>
+                        </div>
+                        <?php endforeach; ?>
+                        
+                        <!-- Voucher -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" style="font-size:14px;">Mã giảm giá</label>
+                            <div class="input-group">
+                                <input type="text" name="voucher_code" class="form-control <?php echo !empty($errors['voucher']) ? 'is-invalid' : ''; ?>" 
+                                       placeholder="Nhập mã giảm giá" value="<?php echo e($_POST['voucher_code'] ?? ''); ?>">
+                                <button type="submit" class="btn" style="background:var(--primary);color:white;">Áp dụng</button>
+                                <?php if (!empty($errors['voucher'])): ?><div class="invalid-feedback"><?php echo e($errors['voucher']); ?></div><?php endif; ?>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <!-- Totals -->
+                        <div class="d-flex justify-content-between mb-2" style="font-size:14px;">
+                            <span>Tạm tính:</span>
+                            <span><?php echo formatPrice($subtotal); ?></span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2" style="font-size:14px;">
+                            <span>Phí vận chuyển:</span>
+                            <span><?php echo $shippingFee > 0 ? formatPrice($shippingFee) : '<span class="text-success">Miễn phí</span>'; ?></span>
+                        </div>
+                        <?php if ($voucherDiscount > 0): ?>
+                        <div class="d-flex justify-content-between mb-2" style="font-size:14px;color:var(--success);">
+                            <span>Giảm giá:</span>
+                            <span>-<?php echo formatPrice($voucherDiscount); ?></span>
+                        </div>
+                        <?php endif; ?>
+                        <hr>
+                        <div class="d-flex justify-content-between mb-4">
+                            <strong style="font-size:16px;">Tổng cộng:</strong>
+                            <strong style="color:var(--primary);font-size:22px;"><?php echo formatPrice($subtotal + $shippingFee - $voucherDiscount); ?></strong>
+                        </div>
+                        
+                        <button type="submit" class="btn-wink w-100 justify-content-center" style="padding:14px;">
+                            <i class="fas fa-check-circle me-1"></i> Đặt hàng
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+
+<?php include dirname(__DIR__) . '/includes/footer.php'; ?>

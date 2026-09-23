@@ -1,0 +1,21 @@
+# WinK Shoe Store - Apache Configuration
+# Bảo mật và URL rewrite
+
+# Chặn truy cập trực tiếp vào file config
+<FilesMatch "^(database|config)\.php$">
+    Order deny,allow
+    Deny from all
+</FilesMatch>
+
+# Chặn directory listing
+Options -Indexes
+
+# Đặt charset mặc định
+AddDefaultCharset UTF-8
+
+# Bảo mật headers
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>
