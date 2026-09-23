@@ -68,22 +68,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $slug .= '-' . time();
         }
         
+        // Xử lý ảnh: ảnh đầu tiên là thumbnail, còn lại là images JSON
+        $thumbnail = !empty($uploadedImages) ? $uploadedImages[0] : null;
+        $otherImages = count($uploadedImages) > 1 ? array_slice($uploadedImages, 1) : [];
+        $imagesJson = !empty($otherImages) ? json_encode($otherImages, JSON_UNESCAPED_UNICODE) : null;
+        
         $stmt = $pdo->prepare("
-            INSERT INTO products (name, slug, description, price, sale_price, category_id, brand_id, is_featured, is_new, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO products (name, slug, thumbnail, images, description, price, sale_price, category_id, brand_id, is_featured, is_new, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         $stmt->execute([
-            $old['name'], $slug, $old['description'], $old['price'], $old['sale_price'],
+            $old['name'], $slug, $thumbnail, $imagesJson, $old['description'], $old['price'], $old['sale_price'],
             $old['category_id'], $old['brand_id'], $old['is_featured'], $old['is_new'], $old['status']
         ]);
         $productId = $pdo->lastInsertId();
-        
-        // Lưu ảnh
-        foreach ($uploadedImages as $index => $imgFile) {
-            $isPrimary = $index === 0 ? 1 : 0;
-            $stmt = $pdo->prepare("INSERT INTO product_images (product_id, image_path, is_primary, sort_order) VALUES (?, ?, ?, ?)");
-            $stmt->execute([$productId, $imgFile, $isPrimary, $index]);
-        }
         
         setFlashMessage('success', 'Thêm sản phẩm thành công! Giờ hãy thêm biến thể (size/color).');
         redirect(url('admin/products/variants.php?id=' . $productId));

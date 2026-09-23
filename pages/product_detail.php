@@ -28,10 +28,19 @@ if (!$product) {
     redirect(url('pages/products.php'));
 }
 
-// Lấy hình ảnh sản phẩm
-$stmtImages = $pdo->prepare("SELECT * FROM product_images WHERE product_id = ? ORDER BY is_primary DESC, sort_order ASC");
-$stmtImages->execute([$product['id']]);
-$images = $stmtImages->fetchAll();
+// Lấy hình ảnh sản phẩm từ thumbnail và images (JSON)
+$images = [];
+if (!empty($product['thumbnail'])) {
+    $images[] = ['image_path' => $product['thumbnail'], 'is_primary' => 1];
+}
+if (!empty($product['images'])) {
+    $extraImages = json_decode($product['images'], true);
+    if (is_array($extraImages)) {
+        foreach ($extraImages as $img) {
+            $images[] = ['image_path' => $img, 'is_primary' => 0];
+        }
+    }
+}
 
 // Lấy biến thể (size + color)
 $stmtVariants = $pdo->prepare("SELECT * FROM product_variants WHERE product_id = ? ORDER BY color, CAST(size AS UNSIGNED)");
@@ -62,9 +71,8 @@ $reviews = $stmtReviews->fetchAll();
 
 // Sản phẩm liên quan (cùng danh mục)
 $stmtRelated = $pdo->prepare("
-    SELECT p.*, pi.image_path as primary_image, c.name as category_name
+    SELECT p.*, p.thumbnail as primary_image, c.name as category_name
     FROM products p
-    LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
     LEFT JOIN categories c ON p.category_id = c.id
     WHERE p.category_id = ? AND p.id != ? AND p.status = 'active'
     ORDER BY RAND()

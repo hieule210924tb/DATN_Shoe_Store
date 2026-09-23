@@ -20,11 +20,10 @@ if (!$cart) {
 
 $stmt = $pdo->prepare("
     SELECT ci.*, p.name, p.slug, pv.size, pv.color, pv.stock_quantity,
-           pi.image_path
+           p.thumbnail as image_path
     FROM cart_items ci
     INNER JOIN products p ON ci.product_id = p.id
     INNER JOIN product_variants pv ON ci.variant_id = pv.id
-    LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
     WHERE ci.cart_id = ?
 ");
 $stmt->execute([$cart['id']]);

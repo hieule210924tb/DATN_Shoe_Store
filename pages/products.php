@@ -74,9 +74,8 @@ $totalPages = ceil($totalProducts / $perPage);
 $offset = ($page - 1) * $perPage;
 
 // === Lấy sản phẩm ===
-$sql = "SELECT p.*, pi.image_path as primary_image, c.name as category_name, b.name as brand_name
+$sql = "SELECT p.*, p.thumbnail as primary_image, c.name as category_name, b.name as brand_name
         FROM products p
-        LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
         LEFT JOIN categories c ON p.category_id = c.id
         LEFT JOIN brands b ON p.brand_id = b.id
         WHERE $whereClause

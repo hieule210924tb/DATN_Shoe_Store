@@ -5,6 +5,7 @@
  */
 $cartCount = isLoggedIn() ? getCartItemCount() : 0;
 $wishlistCount = isLoggedIn() ? getWishlistCount() : 0;
+$currentPage = basename($_SERVER['PHP_SELF']);
 ?>
 
 <!-- Top Bar -->
@@ -24,24 +25,44 @@ $wishlistCount = isLoggedIn() ? getWishlistCount() : 0;
 </div>
 
 <!-- Main Header -->
-<header class="wink-header">
-    <div class="wink-navbar">
+<header class="wink-header sticky-top">
+    <div class="wink-navbar py-2">
         <div class="container">
             <div class="d-flex align-items-center justify-content-between gap-3">
-                <!-- Logo -->
-                <a href="<?php echo url('index.php'); ?>" class="wink-logo">
-                    Win<span>K</span>
-                </a>
                 
-                <!-- Search Bar -->
-                <form action="<?php echo url('pages/search.php'); ?>" method="GET" class="wink-search d-none d-lg-block">
+                <!-- Left: Logo & Nav Links -->
+                <div class="d-flex align-items-center gap-3 gap-lg-4">
+                    <!-- Logo -->
+                    <a href="<?php echo url('index.php'); ?>" class="wink-logo text-decoration-none">
+                        Win<span>K</span>
+                    </a>
+
+                    <!-- Nav Links for Desktop -->
+                    <nav class="wink-nav-menu d-none d-md-flex align-items-center gap-1 gap-lg-2">
+                        <a href="<?php echo url('index.php'); ?>" class="nav-item-link <?php echo ($currentPage == 'index.php' && !isset($_GET['page'])) ? 'active' : ''; ?>">
+                            <i class="fas fa-home me-1"></i>Trang chủ
+                        </a>
+                        <a href="<?php echo url('pages/products.php'); ?>" class="nav-item-link <?php echo ($currentPage == 'products.php') ? 'active' : ''; ?>">
+                            <i class="fas fa-shoe-prints me-1"></i>Sản phẩm
+                        </a>
+                        <a href="<?php echo url('pages/orders.php'); ?>" class="nav-item-link <?php echo ($currentPage == 'orders.php') ? 'active' : ''; ?>">
+                            <i class="fas fa-box me-1"></i>Đơn hàng
+                        </a>
+                        <a href="<?php echo url('pages/vouchers.php'); ?>" class="nav-item-link <?php echo ($currentPage == 'vouchers.php') ? 'active' : ''; ?>">
+                            <i class="fas fa-tags me-1"></i>Khuyến mãi
+                        </a>
+                    </nav>
+                </div>
+                
+                <!-- Center: Search Bar -->
+                <form action="<?php echo url('pages/search.php'); ?>" method="GET" class="wink-search flex-grow-1 mx-2 d-none d-lg-block" style="max-width: 360px;">
                     <input type="text" name="q" placeholder="Tìm kiếm giày, thương hiệu..." 
                            value="<?php echo e($_GET['q'] ?? ''); ?>" autocomplete="off">
                     <button type="submit"><i class="fas fa-search"></i></button>
                 </form>
                 
-                <!-- Nav Icons -->
-                <div class="wink-nav-icons">
+                <!-- Right: Nav Icons & User -->
+                <div class="wink-nav-icons d-flex align-items-center gap-2">
                     <!-- Mobile Search Toggle -->
                     <button class="wink-nav-icon d-lg-none" data-bs-toggle="collapse" data-bs-target="#mobileSearch" aria-label="Tìm kiếm">
                         <i class="fas fa-search"></i>
@@ -63,24 +84,24 @@ $wishlistCount = isLoggedIn() ? getWishlistCount() : 0;
                         </span>
                     </button>
                     
-                    <!-- User -->
+                    <!-- User Dropdown -->
                     <?php if (isLoggedIn()): ?>
                         <div class="dropdown">
                             <button class="wink-user-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="userDropdown">
                                 <img src="<?php echo getCurrentUserAvatar(); ?>" alt="Avatar">
-                                <span class="d-none d-md-inline"><?php echo e(getCurrentUserName()); ?></span>
+                                <span class="d-none d-xl-inline"><?php echo e(getCurrentUserName()); ?></span>
                             </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2">
                                 <?php if (isAdmin()): ?>
-                                    <li><a class="dropdown-item" href="<?php echo url('admin/index.php'); ?>"><i class="fas fa-tachometer-alt me-2"></i>Quản trị</a></li>
-                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item py-2" href="<?php echo url('admin/index.php'); ?>"><i class="fas fa-tachometer-alt me-2 text-primary"></i>Quản trị</a></li>
+                                    <li><hr class="dropdown-divider my-1"></li>
                                 <?php endif; ?>
-                                <li><a class="dropdown-item" href="<?php echo url('pages/profile.php'); ?>"><i class="fas fa-user me-2"></i>Tài khoản</a></li>
-                                <li><a class="dropdown-item" href="<?php echo url('pages/orders.php'); ?>"><i class="fas fa-box me-2"></i>Đơn hàng</a></li>
-                                <li><a class="dropdown-item" href="<?php echo url('pages/wishlist.php'); ?>"><i class="fas fa-heart me-2"></i>Yêu thích</a></li>
-                                <li><a class="dropdown-item" href="<?php echo url('pages/change_password.php'); ?>"><i class="fas fa-key me-2"></i>Đổi mật khẩu</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item text-danger" href="<?php echo url('auth/logout.php'); ?>"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
+                                <li><a class="dropdown-item py-2" href="<?php echo url('pages/profile.php'); ?>"><i class="fas fa-user me-2 text-muted"></i>Tài khoản</a></li>
+                                <li><a class="dropdown-item py-2" href="<?php echo url('pages/orders.php'); ?>"><i class="fas fa-box me-2 text-muted"></i>Đơn hàng</a></li>
+                                <li><a class="dropdown-item py-2" href="<?php echo url('pages/wishlist.php'); ?>"><i class="fas fa-heart me-2 text-muted"></i>Yêu thích</a></li>
+                                <li><a class="dropdown-item py-2" href="<?php echo url('pages/change_password.php'); ?>"><i class="fas fa-key me-2 text-muted"></i>Đổi mật khẩu</a></li>
+                                <li><hr class="dropdown-divider my-1"></li>
+                                <li><a class="dropdown-item py-2 text-danger" href="<?php echo url('auth/logout.php'); ?>"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
                             </ul>
                         </div>
                     <?php else: ?>
@@ -92,9 +113,9 @@ $wishlistCount = isLoggedIn() ? getWishlistCount() : 0;
                 </div>
             </div>
             
-            <!-- Mobile Search -->
+            <!-- Mobile Search Collapse -->
             <div class="collapse d-lg-none mt-2" id="mobileSearch">
-                <form action="<?php echo url('pages/search.php'); ?>" method="GET" class="wink-search">
+                <form action="<?php echo url('pages/search.php'); ?>" method="GET" class="wink-search w-100">
                     <input type="text" name="q" placeholder="Tìm kiếm giày, thương hiệu..." 
                            value="<?php echo e($_GET['q'] ?? ''); ?>">
                     <button type="submit"><i class="fas fa-search"></i></button>
@@ -102,35 +123,15 @@ $wishlistCount = isLoggedIn() ? getWishlistCount() : 0;
             </div>
         </div>
     </div>
-    
-    <!-- Bottom Navigation -->
-    <div class="wink-bottom-nav d-none d-md-block">
-        <div class="container">
-            <nav class="d-flex align-items-center justify-content-center">
-                <a href="<?php echo url('index.php'); ?>" class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) == 'index.php' && !isset($_GET['page'])) ? 'active' : ''; ?>">
-                    <i class="fas fa-home me-1"></i> Trang chủ
-                </a>
-                <a href="<?php echo url('pages/products.php'); ?>" class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) == 'products.php') ? 'active' : ''; ?>">
-                    <i class="fas fa-shoe-prints me-1"></i> Sản phẩm
-                </a>
-                <a href="<?php echo url('pages/orders.php'); ?>" class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) == 'orders.php') ? 'active' : ''; ?>">
-                    <i class="fas fa-box me-1"></i> Đơn hàng
-                </a>
-                <a href="<?php echo url('pages/vouchers.php'); ?>" class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) == 'vouchers.php') ? 'active' : ''; ?>">
-                    <i class="fas fa-tags me-1"></i> Khuyến mãi
-                </a>
-            </nav>
-        </div>
-    </div>
 </header>
 
 <!-- Mobile Bottom Navigation -->
 <nav class="wink-mobile-nav d-md-none">
-    <a href="<?php echo url('index.php'); ?>" class="<?php echo (basename($_SERVER['PHP_SELF']) == 'index.php') ? 'active' : ''; ?>">
+    <a href="<?php echo url('index.php'); ?>" class="<?php echo ($currentPage == 'index.php') ? 'active' : ''; ?>">
         <i class="fas fa-home"></i>
         <span>Trang chủ</span>
     </a>
-    <a href="<?php echo url('pages/products.php'); ?>" class="<?php echo (basename($_SERVER['PHP_SELF']) == 'products.php') ? 'active' : ''; ?>">
+    <a href="<?php echo url('pages/products.php'); ?>" class="<?php echo ($currentPage == 'products.php') ? 'active' : ''; ?>">
         <i class="fas fa-th-large"></i>
         <span>Sản phẩm</span>
     </a>
@@ -141,7 +142,7 @@ $wishlistCount = isLoggedIn() ? getWishlistCount() : 0;
             <span class="mobile-cart-badge cart-count-badge"><?php echo $cartCount; ?></span>
         <?php endif; ?>
     </button>
-    <a href="<?php echo url('pages/orders.php'); ?>" class="<?php echo (basename($_SERVER['PHP_SELF']) == 'orders.php') ? 'active' : ''; ?>">
+    <a href="<?php echo url('pages/orders.php'); ?>" class="<?php echo ($currentPage == 'orders.php') ? 'active' : ''; ?>">
         <i class="fas fa-box"></i>
         <span>Đơn hàng</span>
     </a>
@@ -152,6 +153,29 @@ $wishlistCount = isLoggedIn() ? getWishlistCount() : 0;
 </nav>
 
 <style>
+/* Inline Header Navigation Styling */
+.wink-nav-menu .nav-item-link {
+    color: var(--gray-700);
+    font-weight: 500;
+    font-size: 14px;
+    padding: 8px 14px;
+    border-radius: 20px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.wink-nav-menu .nav-item-link:hover {
+    color: var(--primary);
+    background-color: var(--primary-bg);
+}
+
+.wink-nav-menu .nav-item-link.active {
+    color: var(--primary);
+    font-weight: 600;
+    background-color: var(--primary-bg);
+}
+
 /* Mobile Bottom Navigation */
 .wink-mobile-nav {
     position: fixed;
@@ -221,3 +245,4 @@ $wishlistCount = isLoggedIn() ? getWishlistCount() : 0;
     }
 }
 </style>
+

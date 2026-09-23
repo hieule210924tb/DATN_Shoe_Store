@@ -1,7 +1,5 @@
 <?php
-/**
- * Trang chủ - WinK Shoe Store
- */
+
 require_once __DIR__ . '/config/config.php';
 
 $pageTitle = 'WinK Shoe Store - Cửa hàng giày trực tuyến';
@@ -11,9 +9,8 @@ $pdo = getDBConnection();
 
 // Lấy sản phẩm mới (8 sản phẩm mới nhất)
 $stmtNew = $pdo->query("
-    SELECT p.*, pi.image_path as primary_image, c.name as category_name 
+    SELECT p.*, p.thumbnail as primary_image, c.name as category_name 
     FROM products p 
-    LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1 
     LEFT JOIN categories c ON p.category_id = c.id 
     WHERE p.status = 'active' AND p.is_new = 1
     ORDER BY p.created_at DESC 
@@ -23,9 +20,8 @@ $newProducts = $stmtNew->fetchAll();
 
 // Lấy sản phẩm bán chạy (8 sản phẩm bán nhiều nhất)
 $stmtBestSelling = $pdo->query("
-    SELECT p.*, pi.image_path as primary_image, c.name as category_name 
+    SELECT p.*, p.thumbnail as primary_image, c.name as category_name 
     FROM products p 
-    LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1 
     LEFT JOIN categories c ON p.category_id = c.id 
     WHERE p.status = 'active' AND p.total_sold > 0
     ORDER BY p.total_sold DESC 
@@ -35,9 +31,8 @@ $bestSellingProducts = $stmtBestSelling->fetchAll();
 
 // Lấy sản phẩm nổi bật (8 sản phẩm featured)
 $stmtFeatured = $pdo->query("
-    SELECT p.*, pi.image_path as primary_image, c.name as category_name 
+    SELECT p.*, p.thumbnail as primary_image, c.name as category_name 
     FROM products p 
-    LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1 
     LEFT JOIN categories c ON p.category_id = c.id 
     WHERE p.status = 'active' AND p.is_featured = 1
     ORDER BY p.created_at DESC 

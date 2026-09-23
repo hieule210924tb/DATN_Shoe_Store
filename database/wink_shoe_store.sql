@@ -71,6 +71,8 @@ CREATE TABLE products (
     brand_id INT DEFAULT NULL,
     name VARCHAR(255) NOT NULL,
     slug VARCHAR(255) NOT NULL,
+    thumbnail VARCHAR(255) DEFAULT NULL COMMENT 'Ảnh đại diện chính',
+    images TEXT DEFAULT NULL COMMENT 'JSON mảng đường dẫn ảnh phụ',
     description TEXT DEFAULT NULL,
     price DECIMAL(12, 0) NOT NULL,
     sale_price DECIMAL(12, 0) DEFAULT NULL,
@@ -94,21 +96,7 @@ CREATE TABLE products (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================
--- 5. BẢNG PRODUCT_IMAGES - Hình ảnh sản phẩm
--- =====================================================
-CREATE TABLE product_images (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    product_id INT NOT NULL,
-    image_path VARCHAR(255) NOT NULL,
-    is_primary TINYINT(1) NOT NULL DEFAULT 0,
-    sort_order INT NOT NULL DEFAULT 0,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_product (product_id),
-    CONSTRAINT fk_product_images_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- =====================================================
--- 6. BẢNG PRODUCT_VARIANTS - Biến thể sản phẩm (Size + Màu)
+-- 5. BẢNG PRODUCT_VARIANTS - Biến thể sản phẩm (Size + Màu)
 -- =====================================================
 CREATE TABLE product_variants (
     id INT AUTO_INCREMENT PRIMARY KEY,

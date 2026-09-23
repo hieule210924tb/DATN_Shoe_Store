@@ -20,10 +20,19 @@ if (!$product) {
     redirect(url('admin/products/list.php'));
 }
 
-// Lấy ảnh hiện tại
-$images = $pdo->prepare("SELECT * FROM product_images WHERE product_id = ? ORDER BY is_primary DESC, sort_order");
-$images->execute([$id]);
-$images = $images->fetchAll();
+// Lấy ảnh hiện tại từ thumbnail và images
+$currentImages = [];
+if (!empty($product['thumbnail'])) {
+    $currentImages[] = ['path' => $product['thumbnail'], 'is_primary' => 1];
+}
+if (!empty($product['images'])) {
+    $extraImages = json_decode($product['images'], true);
+    if (is_array($extraImages)) {
+        foreach ($extraImages as $img) {
+            $currentImages[] = ['path' => $img, 'is_primary' => 0];
+        }
+    }
+}
 
 $categories = $pdo->query("SELECT id, name FROM categories WHERE status = 'active' ORDER BY name")->fetchAll();
 $brands = $pdo->query("SELECT id, name FROM brands WHERE status = 'active' ORDER BY name")->fetchAll();
@@ -46,15 +55,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($old['category_id'] <= 0) $errors['category_id'] = 'Vui lòng chọn danh mục.';
     if ($old['sale_price'] !== null && $old['sale_price'] >= $old['price']) $errors['sale_price'] = 'Giá KM phải nhỏ hơn giá gốc.';
     
-    // Xóa ảnh
+    // Xử lý xóa ảnh
     $deleteImages = $_POST['delete_images'] ?? [];
-    foreach ($deleteImages as $imgId) {
-        $stmtImg = $pdo->prepare("SELECT image_path FROM product_images WHERE id = ? AND product_id = ?");
-        $stmtImg->execute([$imgId, $id]);
-        $img = $stmtImg->fetch();
-        if ($img) {
-            @unlink(UPLOAD_PATH . '/products/' . $img['image_path']);
-            $pdo->prepare("DELETE FROM product_images WHERE id = ?")->execute([$imgId]);
+    $remainingImages = [];
+    foreach ($currentImages as $img) {
+        if (in_array($img['path'], $deleteImages)) {
+            @unlink(UPLOAD_PATH . '/products/' . $img['path']);
+        } else {
+            $remainingImages[] = $img['path'];
         }
     }
     
@@ -71,18 +79,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ];
                 $upload = uploadImage($file, UPLOAD_PATH . '/products');
                 if ($upload['success']) {
-                    $stmtInsert = $pdo->prepare("INSERT INTO product_images (product_id, image_path, is_primary, sort_order) VALUES (?, ?, 0, 99)");
-                    $stmtInsert->execute([$id, $upload['filename']]);
+                    $remainingImages[] = $upload['filename'];
                 }
             }
         }
     }
     
-    // Đặt ảnh chính
-    $primaryImageId = (int)($_POST['primary_image'] ?? 0);
-    if ($primaryImageId > 0) {
-        $pdo->prepare("UPDATE product_images SET is_primary = 0 WHERE product_id = ?")->execute([$id]);
-        $pdo->prepare("UPDATE product_images SET is_primary = 1 WHERE id = ? AND product_id = ?")->execute([$primaryImageId, $id]);
+    // Xác định ảnh chính
+    $primaryImage = $_POST['primary_image'] ?? '';
+    if (!empty($primaryImage) && in_array($primaryImage, $remainingImages)) {
+        $thumbnail = $primaryImage;
+        $otherImages = array_values(array_filter($remainingImages, fn($img) => $img !== $primaryImage));
+    } else {
+        // Ảnh đầu tiên làm thumbnail
+        $thumbnail = !empty($remainingImages) ? $remainingImages[0] : null;
+        $otherImages = array_slice($remainingImages, 1);
     }
     
     if (empty($errors)) {
@@ -91,12 +102,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmtSlug->execute([$slug, $id]);
         if ($stmtSlug->fetch()) $slug .= '-' . time();
         
+        $imagesJson = !empty($otherImages) ? json_encode(array_values($otherImages), JSON_UNESCAPED_UNICODE) : null;
+        
         $stmt = $pdo->prepare("
-            UPDATE products SET name=?, slug=?, description=?, price=?, sale_price=?, category_id=?, brand_id=?, is_featured=?, is_new=?, status=?
+            UPDATE products SET name=?, slug=?, thumbnail=?, images=?, description=?, price=?, sale_price=?, category_id=?, brand_id=?, is_featured=?, is_new=?, status=?
             WHERE id=?
         ");
         $stmt->execute([
-            $old['name'], $slug, $old['description'], $old['price'], $old['sale_price'],
+            $old['name'], $slug, $thumbnail, $imagesJson, $old['description'], $old['price'], $old['sale_price'],
             $old['category_id'], $old['brand_id'], $old['is_featured'], $old['is_new'], $old['status'], $id
         ]);
         
@@ -104,10 +117,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect(url('admin/products/edit.php?id=' . $id));
     }
     
-    // Reload images
-    $images = $pdo->prepare("SELECT * FROM product_images WHERE product_id = ? ORDER BY is_primary DESC, sort_order");
-    $images->execute([$id]);
-    $images = $images->fetchAll();
+    // Reload images after changes
+    $currentImages = [];
+    foreach ($remainingImages as $img) {
+        $currentImages[] = ['path' => $img, 'is_primary' => ($img === ($thumbnail ?? '')) ? 1 : 0];
+    }
 }
 
 include dirname(__DIR__) . '/includes/admin_header.php';
@@ -154,19 +168,19 @@ include dirname(__DIR__) . '/includes/admin_header.php';
                             </div>
                             
                             <!-- Ảnh hiện tại -->
-                            <?php if (!empty($images)): ?>
+                            <?php if (!empty($currentImages)): ?>
                             <div class="form-group">
                                 <label>Ảnh hiện tại</label>
                                 <div class="d-flex flex-wrap gap-2">
-                                    <?php foreach ($images as $img): ?>
+                                    <?php foreach ($currentImages as $img): ?>
                                     <div class="position-relative" style="width:100px;">
-                                        <img src="<?php echo PRODUCT_UPLOAD_URL . '/' . e($img['image_path']); ?>" style="width:100px;height:100px;object-fit:cover;border-radius:8px;border:2px solid <?php echo $img['is_primary'] ? '#f36811' : '#ddd'; ?>;">
+                                        <img src="<?php echo PRODUCT_UPLOAD_URL . '/' . e($img['path']); ?>" style="width:100px;height:100px;object-fit:cover;border-radius:8px;border:2px solid <?php echo $img['is_primary'] ? '#f36811' : '#ddd'; ?>;">
                                         <div class="mt-1 d-flex gap-1">
                                             <label style="font-size:10px;cursor:pointer;">
-                                                <input type="radio" name="primary_image" value="<?php echo $img['id']; ?>" <?php echo $img['is_primary'] ? 'checked' : ''; ?>> Chính
+                                                <input type="radio" name="primary_image" value="<?php echo e($img['path']); ?>" <?php echo $img['is_primary'] ? 'checked' : ''; ?>> Chính
                                             </label>
                                             <label style="font-size:10px;cursor:pointer;color:red;">
-                                                <input type="checkbox" name="delete_images[]" value="<?php echo $img['id']; ?>"> Xóa
+                                                <input type="checkbox" name="delete_images[]" value="<?php echo e($img['path']); ?>"> Xóa
                                             </label>
                                         </div>
                                     </div>

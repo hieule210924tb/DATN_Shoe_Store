@@ -39,12 +39,11 @@ $offset = ($page - 1) * $perPage;
 
 // Lấy sản phẩm
 $stmt = $pdo->prepare("
-    SELECT p.*, c.name as category_name, b.name as brand_name, pi.image_path as primary_image,
+    SELECT p.*, c.name as category_name, b.name as brand_name, p.thumbnail as primary_image,
            (SELECT SUM(stock_quantity) FROM product_variants WHERE product_id = p.id) as total_stock
     FROM products p
     LEFT JOIN categories c ON p.category_id = c.id
     LEFT JOIN brands b ON p.brand_id = b.id
-    LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
     WHERE $whereClause
     ORDER BY p.created_at DESC
     LIMIT $perPage OFFSET $offset

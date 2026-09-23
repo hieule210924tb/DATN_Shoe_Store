@@ -33,11 +33,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
         SELECT ci.id, ci.quantity, ci.price,
                p.id as product_id, p.name, p.slug,
                pv.size, pv.color, pv.stock_quantity as max_qty,
-               pi.image_path
+               p.thumbnail as image_path
         FROM cart_items ci
         INNER JOIN products p ON ci.product_id = p.id
         INNER JOIN product_variants pv ON ci.variant_id = pv.id
-        LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
         WHERE ci.cart_id = ?
         ORDER BY ci.created_at DESC
     ");

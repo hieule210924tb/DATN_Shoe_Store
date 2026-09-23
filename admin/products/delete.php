@@ -20,12 +20,22 @@ if ($stmt->fetchColumn() > 0) {
     redirect(url('admin/products/list.php'));
 }
 
-// Xóa ảnh
-$stmtImages = $pdo->prepare("SELECT image_path FROM product_images WHERE product_id = ?");
-$stmtImages->execute([$id]);
-$images = $stmtImages->fetchAll(PDO::FETCH_COLUMN);
-foreach ($images as $img) {
-    @unlink(UPLOAD_PATH . '/products/' . $img);
+// Xóa ảnh từ thumbnail và images
+$stmtProd = $pdo->prepare("SELECT thumbnail, images FROM products WHERE id = ?");
+$stmtProd->execute([$id]);
+$prodData = $stmtProd->fetch();
+if ($prodData) {
+    if (!empty($prodData['thumbnail'])) {
+        @unlink(UPLOAD_PATH . '/products/' . $prodData['thumbnail']);
+    }
+    if (!empty($prodData['images'])) {
+        $extraImages = json_decode($prodData['images'], true);
+        if (is_array($extraImages)) {
+            foreach ($extraImages as $img) {
+                @unlink(UPLOAD_PATH . '/products/' . $img);
+            }
+        }
+    }
 }
 
 // Xóa sản phẩm (CASCADE sẽ xóa variants, images, reviews, wishlist, cart items)
