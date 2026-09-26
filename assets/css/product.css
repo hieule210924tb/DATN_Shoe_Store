@@ -464,3 +464,100 @@
         font-size: 24px;
     }
 }
+
+/* =====================================================
+   PRODUCT PAGES - DARK MODE
+   ===================================================== */
+[data-theme="dark"] .filter-sidebar {
+    background: #151d30;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .filter-group {
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .filter-title {
+    color: #f8fafc;
+}
+
+[data-theme="dark"] .filter-item {
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .sort-bar {
+    background: #151d30;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .product-main-image {
+    background: #151d30;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .product-main-image img {
+    background: #0b0f19;
+}
+
+[data-theme="dark"] .product-thumb {
+    background: #0b0f19;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .product-info {
+    background: #151d30;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .product-info .product-title {
+    color: #f8fafc;
+}
+
+[data-theme="dark"] .size-opt span,
+[data-theme="dark"] .color-option span,
+[data-theme="dark"] .size-option span {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: #1e293b;
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .size-option:hover span,
+[data-theme="dark"] .size-option.active span {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: rgba(255, 107, 0, 0.15);
+    box-shadow: 0 0 12px rgba(255, 107, 0, 0.3);
+}
+
+[data-theme="dark"] .qty-selector button {
+    background: #1e293b;
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .qty-selector button:hover {
+    background: #334155;
+    color: #f8fafc;
+}
+
+[data-theme="dark"] .qty-selector input {
+    background: #151d30;
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #f8fafc;
+}
+
+[data-theme="dark"] .review-item {
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .review-avatar {
+    background: #1e293b;
+    color: #f8fafc;
+}
+
+[data-theme="dark"] .size-guide-table td {
+    border-color: rgba(255, 255, 255, 0.08);
+}

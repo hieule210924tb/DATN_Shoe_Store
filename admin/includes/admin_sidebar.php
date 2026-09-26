@@ -1,7 +1,5 @@
 <?php
-/**
- * Admin Sidebar - WinK Shoe Store
- */
+// sidebar admin
 $currentPage = basename($_SERVER['PHP_SELF']);
 $currentDir = basename(dirname($_SERVER['PHP_SELF']));
 ?>
@@ -114,7 +112,7 @@ $currentDir = basename(dirname($_SERVER['PHP_SELF']));
                 <!-- Thống kê -->
                 <li class="nav-item">
                     <a href="<?php echo url('admin/statistics/index.php'); ?>" class="nav-link <?php echo $currentDir === 'statistics' ? 'active' : ''; ?>">
-                        <i class="nav-icon fas fa-chart-bar"></i>
+                        <i class="nav-icon fa-solid fa-chart-simple"></i>
                         <p>Thống kê</p>
                     </a>
                 </li>

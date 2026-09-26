@@ -269,26 +269,21 @@ function showToast(type, message) {
     existingToasts.forEach(t => t.remove());
     
     const icons = {
-        success: '<i class="fas fa-check-circle text-success"></i>',
-        error: '<i class="fas fa-exclamation-circle text-danger"></i>',
-        warning: '<i class="fas fa-exclamation-triangle text-warning"></i>',
-        info: '<i class="fas fa-info-circle text-info"></i>'
+        success: '<i class="fas fa-check-circle"></i>',
+        error: '<i class="fas fa-exclamation-circle"></i>',
+        warning: '<i class="fas fa-exclamation-triangle"></i>',
+        info: '<i class="fas fa-info-circle"></i>'
     };
     
-    const bgColors = {
-        success: '#d4edda',
-        error: '#f8d7da',
-        warning: '#fff3cd',
-        info: '#d1ecf1'
-    };
+    const toastType = type || 'info';
     
     const toastHtml = `
-        <div class="wink-toast" style="position:fixed;top:80px;right:20px;z-index:9999;">
-            <div class="toast show" style="background:${bgColors[type] || bgColors.info};border:none;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.15);">
-                <div class="toast-body d-flex align-items-center gap-2" style="padding:14px 18px;font-size:14px;font-weight:500;">
-                    ${icons[type] || icons.info}
+        <div class="wink-toast">
+            <div class="wink-toast-card wink-toast-${toastType}">
+                <div class="wink-toast-body">
+                    ${icons[toastType] || icons.info}
                     <span>${message}</span>
-                    <button type="button" class="btn-close ms-auto" style="font-size:10px;" onclick="this.closest('.wink-toast').remove()"></button>
+                    <button type="button" class="wink-toast-close" onclick="this.closest('.wink-toast').remove()">&times;</button>
                 </div>
             </div>
         </div>
@@ -296,15 +291,16 @@ function showToast(type, message) {
     
     document.body.insertAdjacentHTML('beforeend', toastHtml);
     
-    // Tự động ẩn sau 3 giây
+    // Tự động ẩn sau 3.5 giây
     setTimeout(() => {
         const toast = document.querySelector('.wink-toast');
         if (toast) {
-            toast.style.transition = 'opacity 0.3s ease';
+            toast.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
             toast.style.opacity = '0';
+            toast.style.transform = 'translateY(-10px)';
             setTimeout(() => toast.remove(), 300);
         }
-    }, 3000);
+    }, 3500);
 }
 
 // =====================================================
@@ -351,6 +347,22 @@ function renderStars(rating, size = '14px') {
 }
 
 // =====================================================
+// DARK MODE - Apply immediately to prevent flash
+// =====================================================
+(function() {
+    const savedTheme = localStorage.getItem('wink-theme');
+    if (savedTheme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    } else if (!savedTheme) {
+        // Optionally detect system preference
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            localStorage.setItem('wink-theme', 'dark');
+        }
+    }
+})();
+
+// =====================================================
 // INIT
 // =====================================================
 document.addEventListener('DOMContentLoaded', function() {
@@ -360,4 +372,39 @@ document.addEventListener('DOMContentLoaded', function() {
             closeCartDrawer();
         }
     });
+
+    // =====================================================
+    // DARK MODE TOGGLE
+    // =====================================================
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    
+    if (darkModeToggle) {
+        darkModeToggle.addEventListener('click', function() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            
+            if (currentTheme === 'dark') {
+                html.removeAttribute('data-theme');
+                localStorage.setItem('wink-theme', 'light');
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                localStorage.setItem('wink-theme', 'dark');
+            }
+        });
+    }
+
+    // Listen for system theme changes
+    if (window.matchMedia) {
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+            // Only auto-switch if user hasn't manually set a preference
+            const manualPref = localStorage.getItem('wink-theme');
+            if (!manualPref) {
+                if (e.matches) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                } else {
+                    document.documentElement.removeAttribute('data-theme');
+                }
+            }
+        });
+    }
 });

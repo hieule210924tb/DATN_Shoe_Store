@@ -48,7 +48,7 @@ $baseUrl = url('pages/search.php') . '?q=' . urlencode($query);
 include dirname(__DIR__) . '/includes/header.php';
 ?>
 
-<div class="wink-breadcrumb">
+<!-- <div class="wink-breadcrumb">
     <div class="container">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
@@ -57,7 +57,7 @@ include dirname(__DIR__) . '/includes/header.php';
             </ol>
         </nav>
     </div>
-</div>
+</div> -->
 
 <section class="section-padding" style="padding-top: 30px;">
     <div class="container">

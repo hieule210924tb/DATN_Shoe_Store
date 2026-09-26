@@ -68,6 +68,12 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                         <i class="fas fa-search"></i>
                     </button>
                     
+                    <!-- Dark Mode Toggle -->
+                    <button class="dark-mode-toggle" id="darkModeToggle" title="Chế độ tối/sáng" aria-label="Chuyển đổi chế độ tối/sáng">
+                        <i class="fas fa-moon icon-moon"></i>
+                        <i class="fas fa-sun icon-sun"></i>
+                    </button>
+                    
                     <!-- Wishlist -->
                     <a href="<?php echo url('pages/wishlist.php'); ?>" class="wink-nav-icon" title="Yêu thích" id="navWishlist">
                         <i class="fas fa-heart"></i>

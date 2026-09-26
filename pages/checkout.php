@@ -107,18 +107,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             // Tạo đơn hàng
             $orderCode = generateOrderCode();
-            $stmtOrder = $pdo->prepare("
-                INSERT INTO orders (user_id, order_code, full_name, phone, city, address, note, 
-                    subtotal, shipping_fee, discount_amount, voucher_id, total_amount, 
-                    payment_method, payment_status, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'unpaid', 'pending')
-            ");
-            $stmtOrder->execute([
-                $userId, $orderCode, $fullName, $phone, $city, $address, $note,
-                $subtotal, $shippingFee, $voucherDiscount, 
-                $appliedVoucher ? $appliedVoucher['id'] : null, 
-                $totalAmount, $paymentMethod
-            ]);
+            try {
+                $stmtOrder = $pdo->prepare("
+                    INSERT INTO orders (user_id, order_code, full_name, phone, city, address, note, 
+                        subtotal, shipping_fee, discount_amount, voucher_id, total_amount, 
+                        payment_method, payment_status, status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'unpaid', 'pending')
+                ");
+                $stmtOrder->execute([
+                    $userId, $orderCode, $fullName, $phone, $city, $address, $note,
+                    $subtotal, $shippingFee, $voucherDiscount, 
+                    $appliedVoucher ? $appliedVoucher['id'] : null, 
+                    $totalAmount, $paymentMethod
+                ]);
+            } catch (PDOException $exOrder) {
+                $stmtOrder = $pdo->prepare("
+                    INSERT INTO orders (user_id, order_code, receiver_name, receiver_phone, receiver_province, receiver_address, note, 
+                        subtotal, shipping_fee, discount_amount, voucher_id, total_amount, 
+                        payment_method, payment_status, status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'unpaid', 'pending')
+                ");
+                $stmtOrder->execute([
+                    $userId, $orderCode, $fullName, $phone, $city, $address, $note,
+                    $subtotal, $shippingFee, $voucherDiscount, 
+                    $appliedVoucher ? $appliedVoucher['id'] : null, 
+                    $totalAmount, $paymentMethod
+                ]);
+            }
             $orderId = $pdo->lastInsertId();
             
             // Thêm order items
@@ -166,7 +181,7 @@ $pageTitle = 'Thanh toán - WinK Shoe Store';
 include dirname(__DIR__) . '/includes/header.php';
 ?>
 
-<div class="wink-breadcrumb">
+<!-- <div class="wink-breadcrumb">
     <div class="container">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
@@ -176,7 +191,7 @@ include dirname(__DIR__) . '/includes/header.php';
             </ol>
         </nav>
     </div>
-</div>
+</div> -->
 
 <section class="section-padding" style="padding-top: 30px;">
     <div class="container">

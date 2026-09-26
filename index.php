@@ -107,42 +107,50 @@ include __DIR__ . '/includes/header.php';
 </section>
 
 <!-- Features Bar -->
-<section class="py-4" style="background: var(--white); border-bottom: 1px solid var(--gray-200);">
+<section class="py-4">
     <div class="container">
-        <div class="row g-3 text-center">
+        <div class="row g-3">
             <div class="col-6 col-md-3">
-                <div class="d-flex align-items-center justify-content-center gap-3">
-                    <i class="fas fa-shipping-fast fa-2x" style="color: var(--primary);"></i>
-                    <div class="text-start">
-                        <strong style="font-size: 14px;">Miễn phí ship</strong>
-                        <p class="mb-0 text-muted" style="font-size: 12px;">Đơn từ 300K</p>
+                <div class="wink-feature-box">
+                    <div class="wink-feature-icon">
+                        <i class="fas fa-shipping-fast"></i>
+                    </div>
+                    <div>
+                        <strong class="d-block text-dark" style="font-size: 14px;">Miễn phí ship</strong>
+                        <span class="text-muted" style="font-size: 12px;">Đơn từ 300K</span>
                     </div>
                 </div>
             </div>
             <div class="col-6 col-md-3">
-                <div class="d-flex align-items-center justify-content-center gap-3">
-                    <i class="fas fa-shield-alt fa-2x" style="color: var(--primary);"></i>
-                    <div class="text-start">
-                        <strong style="font-size: 14px;">Chính hãng 100%</strong>
-                        <p class="mb-0 text-muted" style="font-size: 12px;">Cam kết chất lượng</p>
+                <div class="wink-feature-box">
+                    <div class="wink-feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div>
+                        <strong class="d-block text-dark" style="font-size: 14px;">Chính hãng 100%</strong>
+                        <span class="text-muted" style="font-size: 12px;">Cam kết chất lượng</span>
                     </div>
                 </div>
             </div>
             <div class="col-6 col-md-3">
-                <div class="d-flex align-items-center justify-content-center gap-3">
-                    <i class="fas fa-undo fa-2x" style="color: var(--primary);"></i>
-                    <div class="text-start">
-                        <strong style="font-size: 14px;">Đổi trả 30 ngày</strong>
-                        <p class="mb-0 text-muted" style="font-size: 12px;">Miễn phí đổi trả</p>
+                <div class="wink-feature-box">
+                    <div class="wink-feature-icon">
+                        <i class="fas fa-undo"></i>
+                    </div>
+                    <div>
+                        <strong class="d-block text-dark" style="font-size: 14px;">Đổi trả 30 ngày</strong>
+                        <span class="text-muted" style="font-size: 12px;">Miễn phí đổi trả</span>
                     </div>
                 </div>
             </div>
             <div class="col-6 col-md-3">
-                <div class="d-flex align-items-center justify-content-center gap-3">
-                    <i class="fas fa-headset fa-2x" style="color: var(--primary);"></i>
-                    <div class="text-start">
-                        <strong style="font-size: 14px;">Hỗ trợ 24/7</strong>
-                        <p class="mb-0 text-muted" style="font-size: 12px;">Tư vấn miễn phí</p>
+                <div class="wink-feature-box">
+                    <div class="wink-feature-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <div>
+                        <strong class="d-block text-dark" style="font-size: 14px;">Hỗ trợ 24/7</strong>
+                        <span class="text-muted" style="font-size: 12px;">Tư vấn miễn phí</span>
                     </div>
                 </div>
             </div>
@@ -152,7 +160,7 @@ include __DIR__ . '/includes/header.php';
 
 <!-- Categories Section -->
 <?php if (!empty($categories)): ?>
-<section class="section-padding">
+<section class="section-padding" >
     <div class="container">
         <div class="section-heading">
             <div class="section-line"></div>
@@ -167,14 +175,9 @@ include __DIR__ . '/includes/header.php';
             ?>
             <div class="col-6 col-sm-4 col-md-3 col-lg-2">
                 <a href="<?php echo url('pages/products.php?category=' . e($category['slug'])); ?>" 
-                   class="d-block text-center p-3 rounded-3 text-decoration-none" 
-                   style="background: var(--white); border: 1px solid var(--gray-200); transition: all 0.3s ease;">
-                    <div class="mb-2">
-                        <i class="<?php echo $icon; ?> fa-2x" style="color: var(--primary);"></i>
-                    </div>
-                    <span class="fw-semibold" style="color: var(--dark); font-size: 13px;">
-                        <?php echo e($category['name']); ?>
-                    </span>
+                   class="wink-category-card">
+                    <i class="<?php echo $icon; ?>"></i>
+                    <span style="color: #0f172a"> <?php echo e($category['name']); ?></span>
                 </a>
             </div>
             <?php endforeach; ?>
@@ -185,7 +188,7 @@ include __DIR__ . '/includes/header.php';
 
 <!-- New Products Section -->
 <?php if (!empty($newProducts)): ?>
-<section class="section-padding" style="background: var(--white);">
+<section class="section-padding">
     <div class="container">
         <div class="section-heading">
             <div class="section-line"></div>
@@ -231,7 +234,7 @@ include __DIR__ . '/includes/header.php';
 
 <!-- Featured Products Section -->
 <?php if (!empty($featuredProducts)): ?>
-<section class="section-padding" style="background: var(--white);">
+<section class="section-padding">
     <div class="container">
         <div class="section-heading">
             <div class="section-line"></div>
@@ -271,7 +274,7 @@ include __DIR__ . '/includes/header.php';
                     <?php if (!empty($brand['logo'])): ?>
                         <img src="<?php echo UPLOAD_URL . '/brands/' . e($brand['logo']); ?>" alt="<?php echo e($brand['name']); ?>" style="max-height:40px;max-width:100%;">
                     <?php else: ?>
-                        <span class="fw-bold" style="color:var(--dark);font-size:16px;"><?php echo e($brand['name']); ?></span>
+                        <span class="fw-bold" style="color:#0f172a;font-size:16px;"><?php echo e($brand['name']); ?></span>
                     <?php endif; ?>
                 </a>
             </div>
@@ -280,24 +283,5 @@ include __DIR__ . '/includes/header.php';
     </div>
 </section>
 <?php endif; ?>
-
-<!-- Newsletter Section -->
-<section class="py-5" style="background: linear-gradient(135deg, #f36811 0%, #ff8a3d 100%);">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-lg-6 text-center text-white">
-                <h3 class="fw-bold mb-2">Đăng ký nhận tin</h3>
-                <p class="mb-4 opacity-75">Nhận thông tin khuyến mãi và sản phẩm mới nhất từ WinK</p>
-                <form class="d-flex gap-2 justify-content-center" onsubmit="event.preventDefault(); showToast('success', 'Đăng ký thành công!');">
-                    <input type="email" class="form-control" placeholder="Nhập email của bạn..." 
-                           style="max-width:340px;border-radius:50px;padding:10px 20px;border:none;">
-                    <button type="submit" class="btn-wink" style="background:#1a1a2e;">
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-</section>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>

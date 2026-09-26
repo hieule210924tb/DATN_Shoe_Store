@@ -101,7 +101,7 @@ $extraCSS = ['product.css'];
 include dirname(__DIR__) . '/includes/header.php';
 ?>
 
-<!-- Breadcrumb -->
+<!-- Breadcrumb
 <div class="wink-breadcrumb">
     <div class="container">
         <nav aria-label="breadcrumb">
@@ -115,7 +115,7 @@ include dirname(__DIR__) . '/includes/header.php';
             </ol>
         </nav>
     </div>
-</div>
+</div> -->
 
 <section class="product-detail-section">
     <div class="container">

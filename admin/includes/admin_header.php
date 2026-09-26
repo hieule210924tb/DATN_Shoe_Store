@@ -1,8 +1,5 @@
 <?php
-/**
- * Admin Header - WinK Shoe Store
- * Sử dụng AdminLTE CDN
- */
+// header admin
 require_once dirname(dirname(__DIR__)) . '/includes/admin_check.php';
 ?>
 <!DOCTYPE html>

@@ -51,7 +51,6 @@ function csrfField() {
 
 /**
  * Chuyển hướng đến URL
- * @param string $url URL đích
  */
 function redirect($url) {
     header("Location: $url");
@@ -83,7 +82,6 @@ function asset($path) {
 /**
  * Đặt thông báo flash
  * @param string $type Loại thông báo: success, error, warning, info
- * @param string $message Nội dung thông báo
  */
 function setFlashMessage($type, $message) {
     $_SESSION['flash_message'] = [
@@ -123,7 +121,6 @@ function displayFlashMessage() {
         }
         return '<div class="alert alert-' . $type . ' alert-dismissible fade show" role="alert">
                     ' . $icon . $message . '
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>';
     }
     return '';

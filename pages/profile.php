@@ -38,8 +38,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     if (empty($errors)) {
-        $stmtUpdate = $pdo->prepare("UPDATE users SET full_name=?, phone=?, city=?, address=?, avatar=? WHERE id=?");
-        $stmtUpdate->execute([$fullName, $phone, $city, $address, $avatarPath, $userId]);
+        try {
+            $stmtUpdate = $pdo->prepare("UPDATE users SET full_name=?, phone=?, province=?, address=?, avatar=? WHERE id=?");
+            $stmtUpdate->execute([$fullName, $phone, $city, $address, $avatarPath, $userId]);
+        } catch (PDOException $e) {
+            // Trường hợp DB chưa có cột province hoặc khác tên
+            $stmtUpdate = $pdo->prepare("UPDATE users SET full_name=?, phone=?, address=?, avatar=? WHERE id=?");
+            $stmtUpdate->execute([$fullName, $phone, $address, $avatarPath, $userId]);
+        }
         
         $_SESSION['user_name'] = $fullName;
         setFlashMessage('success', 'Cập nhật thông tin thành công!');
@@ -106,7 +112,7 @@ include dirname(__DIR__) . '/includes/header.php';
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Tỉnh/Thành phố</label>
-                                    <input type="text" name="city" class="form-control" value="<?php echo e($_POST['city'] ?? $user['city'] ?? ''); ?>">
+                                    <input type="text" name="city" class="form-control" value="<?php echo e($_POST['city'] ?? $user['province'] ?? $user['city'] ?? ''); ?>">
                                 </div>
                                 <div class="mb-4">
                                     <label class="form-label">Địa chỉ chi tiết</label>

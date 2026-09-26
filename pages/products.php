@@ -114,7 +114,7 @@ $baseUrl = url('pages/products.php') . (!empty($queryParams) ? '?' . http_build_
 ?>
 
 <!-- Breadcrumb -->
-<div class="wink-breadcrumb">
+<!-- <div class="wink-breadcrumb">
     <div class="container">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
@@ -128,7 +128,7 @@ $baseUrl = url('pages/products.php') . (!empty($queryParams) ? '?' . http_build_
             </ol>
         </nav>
     </div>
-</div>
+</div> -->
 
 <section class="section-padding" style="padding-top: 30px;">
     <div class="container">
