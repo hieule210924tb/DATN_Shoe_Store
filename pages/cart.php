@@ -1,7 +1,5 @@
 <?php
-/**
- * Trang giỏ hàng - WinK Shoe Store
- */
+/** Trang giỏ hàng - WinK Shoe Store */
 require_once dirname(__DIR__) . '/config/config.php';
 require_once dirname(__DIR__) . '/includes/auth_check.php';
 
@@ -9,7 +7,7 @@ $pdo = getDBConnection();
 $userId = getCurrentUserId();
 
 // Lấy giỏ hàng
-$stmt = $pdo->prepare("SELECT id FROM carts WHERE user_id = ?");
+$stmt = $pdo->prepare('SELECT id FROM carts WHERE user_id = ?');
 $stmt->execute([$userId]);
 $cart = $stmt->fetch();
 
@@ -17,7 +15,7 @@ $cartItems = [];
 $totalAmount = 0;
 
 if ($cart) {
-    $stmt = $pdo->prepare("
+    $stmt = $pdo->prepare('
         SELECT ci.id, ci.quantity, ci.price,
                p.id as product_id, p.name, p.slug,
                pv.size, pv.color, pv.stock_quantity,
@@ -27,10 +25,10 @@ if ($cart) {
         INNER JOIN product_variants pv ON ci.variant_id = pv.id
         WHERE ci.cart_id = ?
         ORDER BY ci.created_at DESC
-    ");
+    ');
     $stmt->execute([$cart['id']]);
     $cartItems = $stmt->fetchAll();
-    
+
     foreach ($cartItems as $item) {
         $totalAmount += $item['price'] * $item['quantity'];
     }
@@ -41,18 +39,6 @@ $extraCSS = ['product.css'];
 
 include dirname(__DIR__) . '/includes/header.php';
 ?>
-
-<div class="wink-breadcrumb">
-    <div class="container">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="<?php echo url('index.php'); ?>">Trang chủ</a></li>
-                <li class="breadcrumb-item active">Giỏ hàng</li>
-            </ol>
-        </nav>
-    </div>
-</div>
-
 <section class="section-padding" style="padding-top: 30px;">
     <div class="container">
         <h4 class="fw-bold mb-4"><i class="fas fa-shopping-cart me-2"></i>Giỏ hàng (<?php echo count($cartItems); ?> sản phẩm)</h4>

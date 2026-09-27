@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Trang danh sách sản phẩm - WinK Shoe Store
  * Hỗ trợ: phân trang, lọc theo danh mục/thương hiệu/giá/size, sắp xếp
@@ -9,13 +10,13 @@ $pdo = getDBConnection();
 
 // === Lấy tham số filter từ URL ===
 $categorySlug = $_GET['category'] ?? '';
-$brandSlug    = $_GET['brand'] ?? '';
-$minPrice     = (int)($_GET['min_price'] ?? 0);
-$maxPrice     = (int)($_GET['max_price'] ?? 0);
-$sizeFilter   = $_GET['size'] ?? '';
-$sort         = $_GET['sort'] ?? 'newest';
-$page         = max(1, (int)($_GET['page'] ?? 1));
-$perPage      = ITEMS_PER_PAGE;
+$brandSlug = $_GET['brand'] ?? '';
+$minPrice = (int) ($_GET['min_price'] ?? 0);
+$maxPrice = (int) ($_GET['max_price'] ?? 0);
+$sizeFilter = $_GET['size'] ?? '';
+$sort = $_GET['sort'] ?? 'newest';
+$page = max(1, (int) ($_GET['page'] ?? 1));
+$perPage = ITEMS_PER_PAGE;
 
 // === Xây dựng query ===
 $where = ["p.status = 'active'"];
@@ -23,43 +24,43 @@ $params = [];
 
 // Lọc theo danh mục
 if (!empty($categorySlug)) {
-    $where[] = "c.slug = ?";
+    $where[] = 'c.slug = ?';
     $params[] = $categorySlug;
 }
 
 // Lọc theo thương hiệu
 if (!empty($brandSlug)) {
-    $where[] = "b.slug = ?";
+    $where[] = 'b.slug = ?';
     $params[] = $brandSlug;
 }
 
 // Lọc theo khoảng giá
 if ($minPrice > 0) {
-    $where[] = "COALESCE(p.sale_price, p.price) >= ?";
+    $where[] = 'COALESCE(p.sale_price, p.price) >= ?';
     $params[] = $minPrice;
 }
 if ($maxPrice > 0) {
-    $where[] = "COALESCE(p.sale_price, p.price) <= ?";
+    $where[] = 'COALESCE(p.sale_price, p.price) <= ?';
     $params[] = $maxPrice;
 }
 
 // Lọc theo size
 if (!empty($sizeFilter)) {
-    $where[] = "p.id IN (SELECT product_id FROM product_variants WHERE size = ? AND stock_quantity > 0)";
+    $where[] = 'p.id IN (SELECT product_id FROM product_variants WHERE size = ? AND stock_quantity > 0)';
     $params[] = $sizeFilter;
 }
 
 $whereClause = implode(' AND ', $where);
 
 // Sắp xếp
-$orderBy = match($sort) {
-    'price_asc'     => 'COALESCE(p.sale_price, p.price) ASC',
-    'price_desc'    => 'COALESCE(p.sale_price, p.price) DESC',
-    'best_selling'  => 'p.total_sold DESC',
-    'featured'      => 'p.is_featured DESC, p.created_at DESC',
-    'name_asc'      => 'p.name ASC',
-    'name_desc'     => 'p.name DESC',
-    default         => 'p.created_at DESC', // newest
+$orderBy = match ($sort) {
+    'price_asc' => 'COALESCE(p.sale_price, p.price) ASC',
+    'price_desc' => 'COALESCE(p.sale_price, p.price) DESC',
+    'best_selling' => 'p.total_sold DESC',
+    'featured' => 'p.is_featured DESC, p.created_at DESC',
+    'name_asc' => 'p.name ASC',
+    'name_desc' => 'p.name DESC',
+    default => 'p.created_at DESC',  // newest
 };
 
 // === Đếm tổng sản phẩm ===
@@ -69,7 +70,7 @@ $countSql = "SELECT COUNT(*) FROM products p
              WHERE $whereClause";
 $stmtCount = $pdo->prepare($countSql);
 $stmtCount->execute($params);
-$totalProducts = (int)$stmtCount->fetchColumn();
+$totalProducts = (int) $stmtCount->fetchColumn();
 $totalPages = ceil($totalProducts / $perPage);
 $offset = ($page - 1) * $perPage;
 
@@ -88,7 +89,7 @@ $products = $stmtProducts->fetchAll();
 // === Lấy danh mục, thương hiệu, size cho filter sidebar ===
 $categories = $pdo->query("SELECT * FROM categories WHERE status = 'active' ORDER BY name")->fetchAll();
 $brands = $pdo->query("SELECT * FROM brands WHERE status = 'active' ORDER BY name")->fetchAll();
-$sizes = $pdo->query("SELECT DISTINCT size FROM product_variants WHERE stock_quantity > 0 ORDER BY CAST(size AS UNSIGNED)")->fetchAll(PDO::FETCH_COLUMN);
+$sizes = $pdo->query('SELECT DISTINCT size FROM product_variants WHERE stock_quantity > 0 ORDER BY CAST(size AS UNSIGNED)')->fetchAll(PDO::FETCH_COLUMN);
 
 // === Tên danh mục hiện tại ===
 $currentCategory = null;
@@ -112,24 +113,6 @@ $queryParams = $_GET;
 unset($queryParams['page']);
 $baseUrl = url('pages/products.php') . (!empty($queryParams) ? '?' . http_build_query($queryParams) : '');
 ?>
-
-<!-- Breadcrumb -->
-<!-- <div class="wink-breadcrumb">
-    <div class="container">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="<?php echo url('index.php'); ?>">Trang chủ</a></li>
-                <?php if ($currentCategory): ?>
-                    <li class="breadcrumb-item"><a href="<?php echo url('pages/products.php'); ?>">Sản phẩm</a></li>
-                    <li class="breadcrumb-item active"><?php echo e($currentCategory['name']); ?></li>
-                <?php else: ?>
-                    <li class="breadcrumb-item active">Sản phẩm</li>
-                <?php endif; ?>
-            </ol>
-        </nav>
-    </div>
-</div> -->
-
 <section class="section-padding" style="padding-top: 30px;">
     <div class="container">
         <div class="row g-4">
@@ -176,7 +159,7 @@ $baseUrl = url('pages/products.php') . (!empty($queryParams) ? '?' . http_build_
                         <div class="filter-group">
                             <h6 class="filter-title">Khoảng giá</h6>
                             <div class="filter-list">
-                                <?php 
+                                <?php
                                 $priceRanges = [
                                     ['label' => 'Dưới 500.000đ', 'min' => 0, 'max' => 500000],
                                     ['label' => '500.000đ - 1.000.000đ', 'min' => 500000, 'max' => 1000000],
@@ -184,9 +167,9 @@ $baseUrl = url('pages/products.php') . (!empty($queryParams) ? '?' . http_build_
                                     ['label' => '2.000.000đ - 5.000.000đ', 'min' => 2000000, 'max' => 5000000],
                                     ['label' => 'Trên 5.000.000đ', 'min' => 5000000, 'max' => 0],
                                 ];
-                                foreach ($priceRanges as $range): 
+                                foreach ($priceRanges as $range):
                                     $isChecked = ($minPrice == $range['min'] && $maxPrice == $range['max']);
-                                ?>
+                                    ?>
                                 <label class="filter-item">
                                     <input type="radio" name="price_range" value="<?php echo $range['min'] . '-' . $range['max']; ?>"
                                            <?php echo $isChecked ? 'checked' : ''; ?>

@@ -1,7 +1,5 @@
 <?php
-/**
- * Trang danh sách voucher - WinK Shoe Store
- */
+/** Trang danh sách voucher - WinK Shoe Store */
 require_once dirname(__DIR__) . '/config/config.php';
 
 $pdo = getDBConnection();
@@ -23,18 +21,6 @@ $extraCSS = ['product.css'];
 
 include dirname(__DIR__) . '/includes/header.php';
 ?>
-
-<div class="wink-breadcrumb">
-    <div class="container">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="<?php echo url('index.php'); ?>">Trang chủ</a></li>
-                <li class="breadcrumb-item active">Khuyến mãi</li>
-            </ol>
-        </nav>
-    </div>
-</div>
-
 <section class="section-padding" style="padding-top: 30px;">
     <div class="container">
         <h4 class="fw-bold mb-4"><i class="fas fa-tags me-2"></i>Mã giảm giá đang có (<?php echo count($vouchers); ?>)</h4>
@@ -155,14 +141,13 @@ include dirname(__DIR__) . '/includes/header.php';
 }
 
 .voucher-card-footer .btn-wink {
-    background: white;
     color: #667eea;
     border: none;
 }
 
 .voucher-card-footer .btn-wink:hover {
-    background: #f0f0f0;
     color: #764ba2;
+    background: linear-gradient(135deg, #ff5e00 0%, #ff8800 25%);;
 }
 </style>
 

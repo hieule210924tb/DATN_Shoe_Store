@@ -1,7 +1,5 @@
 <?php
-/**
- * Trang danh sách yêu thích - WinK Shoe Store
- */
+/** Trang danh sách yêu thích - WinK Shoe Store */
 require_once dirname(__DIR__) . '/config/config.php';
 require_once dirname(__DIR__) . '/includes/auth_check.php';
 
@@ -28,18 +26,6 @@ $extraCSS = ['product.css'];
 
 include dirname(__DIR__) . '/includes/header.php';
 ?>
-
-<div class="wink-breadcrumb">
-    <div class="container">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="<?php echo url('index.php'); ?>">Trang chủ</a></li>
-                <li class="breadcrumb-item active">Danh sách yêu thích</li>
-            </ol>
-        </nav>
-    </div>
-</div>
-
 <section class="section-padding" style="padding-top: 30px;">
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-4">
@@ -54,17 +40,17 @@ include dirname(__DIR__) . '/includes/header.php';
         <?php if (!empty($wishlistItems)): ?>
         <div class="row g-4">
             <?php foreach ($wishlistItems as $product): ?>
-                <?php 
+                <?php
                 // Tính giá hiển thị
                 $displayPrice = $product['sale_price'] ?: $product['price'];
                 $hasDiscount = !empty($product['sale_price']) && $product['sale_price'] < $product['price'];
                 $discountPercent = $hasDiscount ? round(100 - ($product['sale_price'] / $product['price'] * 100)) : 0;
-                
+
                 // Ảnh sản phẩm
-                $productImage = !empty($product['primary_image']) 
-                    ? PRODUCT_UPLOAD_URL . '/' . $product['primary_image'] 
+                $productImage = !empty($product['primary_image'])
+                    ? PRODUCT_UPLOAD_URL . '/' . $product['primary_image']
                     : asset('images/default/no-product.png');
-                
+
                 // URL chi tiết
                 $productUrl = url('pages/product_detail.php?slug=' . e($product['slug']));
                 ?>
@@ -116,19 +102,19 @@ include dirname(__DIR__) . '/includes/header.php';
                             <?php if ($product['total_reviews'] > 0): ?>
                             <div class="product-card-rating">
                                 <div class="stars">
-                                    <?php 
+                                    <?php
                                     $rating = $product['avg_rating'];
-                                    for ($i = 1; $i <= 5; $i++): 
+                                    for ($i = 1; $i <= 5; $i++):
                                         if ($i <= floor($rating)):
-                                    ?>
+                                            ?>
                                         <i class="fas fa-star"></i>
                                     <?php elseif ($i - 0.5 <= $rating): ?>
                                         <i class="fas fa-star-half-alt"></i>
                                     <?php else: ?>
                                         <i class="far fa-star empty"></i>
-                                    <?php 
+                                    <?php
                                         endif;
-                                    endfor; 
+                                    endfor;
                                     ?>
                                 </div>
                                 <span class="count">(<?php echo $product['total_reviews']; ?>)</span>

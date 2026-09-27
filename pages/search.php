@@ -1,19 +1,17 @@
 <?php
-/**
- * Trang tìm kiếm - WinK Shoe Store
- */
+/** Trang tìm kiếm - WinK Shoe Store */
 require_once dirname(__DIR__) . '/config/config.php';
 
 $pdo = getDBConnection();
 $query = trim($_GET['q'] ?? '');
-$page = max(1, (int)($_GET['page'] ?? 1));
+$page = max(1, (int) ($_GET['page'] ?? 1));
 $perPage = ITEMS_PER_PAGE;
 $products = [];
 $totalProducts = 0;
 
 if (!empty($query)) {
     $searchTerm = '%' . $query . '%';
-    
+
     // Đếm kết quả
     $stmtCount = $pdo->prepare("
         SELECT COUNT(*) FROM products p
@@ -21,10 +19,10 @@ if (!empty($query)) {
         WHERE p.status = 'active' AND (p.name LIKE ? OR b.name LIKE ?)
     ");
     $stmtCount->execute([$searchTerm, $searchTerm]);
-    $totalProducts = (int)$stmtCount->fetchColumn();
+    $totalProducts = (int) $stmtCount->fetchColumn();
     $totalPages = ceil($totalProducts / $perPage);
     $offset = ($page - 1) * $perPage;
-    
+
     // Lấy sản phẩm
     $stmt = $pdo->prepare("
         SELECT p.*, p.thumbnail as primary_image, c.name as category_name, b.name as brand_name
@@ -47,18 +45,6 @@ $baseUrl = url('pages/search.php') . '?q=' . urlencode($query);
 
 include dirname(__DIR__) . '/includes/header.php';
 ?>
-
-<!-- <div class="wink-breadcrumb">
-    <div class="container">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="<?php echo url('index.php'); ?>">Trang chủ</a></li>
-                <li class="breadcrumb-item active">Tìm kiếm</li>
-            </ol>
-        </nav>
-    </div>
-</div> -->
-
 <section class="section-padding" style="padding-top: 30px;">
     <div class="container">
         <?php if (!empty($query)): ?>

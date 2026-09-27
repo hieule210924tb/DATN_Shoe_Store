@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Header - WinK Shoe Store
  * Include ở đầu mỗi trang User
@@ -27,8 +28,9 @@ $_cacheVersion = '?v=' . time();
     <meta name="description" content="<?php echo e($pageDescription ?? 'WinK Shoe Store - Cửa hàng giày trực tuyến uy tín, đa dạng mẫu mã, giá cả hợp lý.'); ?>">
     <title><?php echo e($pageTitle ?? 'WinK Shoe Store'); ?></title>
     
+
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="<?php echo asset('images/logo/favicon.png'); ?>">
+    <link rel="icon" type="image/x-con" href="<?php echo asset('images/logo/favicon.ico'); ?>">
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">

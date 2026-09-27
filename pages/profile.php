@@ -1,7 +1,5 @@
 <?php
-/**
- * Trang thông tin cá nhân - WinK
- */
+/** Trang thông tin cá nhân - WinK */
 require_once dirname(__DIR__) . '/config/config.php';
 require_once dirname(__DIR__) . '/includes/auth_check.php';
 
@@ -9,7 +7,7 @@ $pdo = getDBConnection();
 $userId = getCurrentUserId();
 $errors = [];
 
-$stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+$stmt = $pdo->prepare('SELECT * FROM users WHERE id = ?');
 $stmt->execute([$userId]);
 $user = $stmt->fetch();
 
@@ -18,9 +16,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $phone = trim($_POST['phone'] ?? '');
     $city = trim($_POST['city'] ?? '');
     $address = trim($_POST['address'] ?? '');
-    
-    if (empty($fullName)) $errors['full_name'] = 'Vui lòng nhập họ tên.';
-    
+
+    if (empty($fullName))
+        $errors['full_name'] = 'Vui lòng nhập họ tên.';
+
     // Upload avatar
     $avatarPath = $user['avatar'];
     if (isset($_FILES['avatar']) && $_FILES['avatar']['error'] === UPLOAD_ERR_OK) {
@@ -31,22 +30,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 deleteImage($user['avatar'], UPLOAD_PATH . '/avatars');
             }
             $avatarPath = $upload['filename'];
-            $_SESSION['user_avatar'] = $avatarPath; // Update session
+            $_SESSION['user_avatar'] = $avatarPath;  // Update session
         } else {
             $errors['avatar'] = $upload['error'];
         }
     }
-    
+
     if (empty($errors)) {
         try {
-            $stmtUpdate = $pdo->prepare("UPDATE users SET full_name=?, phone=?, province=?, address=?, avatar=? WHERE id=?");
+            $stmtUpdate = $pdo->prepare('UPDATE users SET full_name=?, phone=?, province=?, address=?, avatar=? WHERE id=?');
             $stmtUpdate->execute([$fullName, $phone, $city, $address, $avatarPath, $userId]);
         } catch (PDOException $e) {
             // Trường hợp DB chưa có cột province hoặc khác tên
-            $stmtUpdate = $pdo->prepare("UPDATE users SET full_name=?, phone=?, address=?, avatar=? WHERE id=?");
+            $stmtUpdate = $pdo->prepare('UPDATE users SET full_name=?, phone=?, address=?, avatar=? WHERE id=?');
             $stmtUpdate->execute([$fullName, $phone, $address, $avatarPath, $userId]);
         }
-        
+
         $_SESSION['user_name'] = $fullName;
         setFlashMessage('success', 'Cập nhật thông tin thành công!');
         redirect(url('pages/profile.php'));
@@ -56,18 +55,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $pageTitle = 'Thông tin cá nhân - WinK';
 include dirname(__DIR__) . '/includes/header.php';
 ?>
-
-<div class="wink-breadcrumb">
-    <div class="container">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="<?php echo url('index.php'); ?>">Trang chủ</a></li>
-                <li class="breadcrumb-item active">Tài khoản</li>
-            </ol>
-        </nav>
-    </div>
-</div>
-
 <section class="section-padding">
     <div class="container">
         <div class="row g-4">

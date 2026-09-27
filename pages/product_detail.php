@@ -1,7 +1,5 @@
 <?php
-/**
- * Chi tiết sản phẩm - WinK Shoe Store
- */
+/** Chi tiết sản phẩm - WinK Shoe Store */
 require_once dirname(__DIR__) . '/config/config.php';
 
 $pdo = getDBConnection();
@@ -43,7 +41,7 @@ if (!empty($product['images'])) {
 }
 
 // Lấy biến thể (size + color)
-$stmtVariants = $pdo->prepare("SELECT * FROM product_variants WHERE product_id = ? ORDER BY color, CAST(size AS UNSIGNED)");
+$stmtVariants = $pdo->prepare('SELECT * FROM product_variants WHERE product_id = ? ORDER BY color, CAST(size AS UNSIGNED)');
 $stmtVariants->execute([$product['id']]);
 $variants = $stmtVariants->fetchAll();
 
@@ -58,14 +56,14 @@ $allSizes = array_keys($allSizes);
 sort($allSizes, SORT_NUMERIC);
 
 // Lấy đánh giá
-$stmtReviews = $pdo->prepare("
+$stmtReviews = $pdo->prepare('
     SELECT pr.*, u.full_name, u.avatar
     FROM product_reviews pr
     INNER JOIN users u ON pr.user_id = u.id
     WHERE pr.product_id = ?
     ORDER BY pr.created_at DESC
     LIMIT 10
-");
+');
 $stmtReviews->execute([$product['id']]);
 $reviews = $stmtReviews->fetchAll();
 
@@ -89,9 +87,9 @@ $discountPercent = $hasDiscount ? round(100 - ($product['sale_price'] / $product
 // Kiểm tra wishlist
 $isInWishlist = false;
 if (isLoggedIn()) {
-    $stmtWl = $pdo->prepare("SELECT id FROM wishlists WHERE user_id = ? AND product_id = ?");
+    $stmtWl = $pdo->prepare('SELECT id FROM wishlists WHERE user_id = ? AND product_id = ?');
     $stmtWl->execute([getCurrentUserId(), $product['id']]);
-    $isInWishlist = (bool)$stmtWl->fetch();
+    $isInWishlist = (bool) $stmtWl->fetch();
 }
 
 $pageTitle = e($product['name']) . ' - WinK Shoe Store';
@@ -100,23 +98,6 @@ $extraCSS = ['product.css'];
 
 include dirname(__DIR__) . '/includes/header.php';
 ?>
-
-<!-- Breadcrumb
-<div class="wink-breadcrumb">
-    <div class="container">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="<?php echo url('index.php'); ?>">Trang chủ</a></li>
-                <li class="breadcrumb-item"><a href="<?php echo url('pages/products.php'); ?>">Sản phẩm</a></li>
-                <?php if ($product['category_name']): ?>
-                    <li class="breadcrumb-item"><a href="<?php echo url('pages/products.php?category=' . e($product['category_slug'])); ?>"><?php echo e($product['category_name']); ?></a></li>
-                <?php endif; ?>
-                <li class="breadcrumb-item active"><?php echo e($product['name']); ?></li>
-            </ol>
-        </nav>
-    </div>
-</div> -->
-
 <section class="product-detail-section">
     <div class="container">
         <div class="row g-4">
@@ -176,14 +157,16 @@ include dirname(__DIR__) . '/includes/header.php';
                     <div class="variant-selector">
                         <div class="variant-label">Màu sắc: <span id="selectedColorName"><?php echo e(array_key_first($colors)); ?></span></div>
                         <div class="color-options">
-                            <?php $firstColor = true; foreach ($colors as $colorName => $colorVariants): ?>
+                            <?php $firstColor = true;
+                            foreach ($colors as $colorName => $colorVariants): ?>
                             <label class="color-option">
                                 <input type="radio" name="color" value="<?php echo e($colorName); ?>" 
                                        <?php echo $firstColor ? 'checked' : ''; ?>
                                        onchange="selectColor('<?php echo e($colorName); ?>')">
                                 <span><?php echo e($colorName); ?></span>
                             </label>
-                            <?php $firstColor = false; endforeach; ?>
+                            <?php $firstColor = false;
+                            endforeach; ?>
                         </div>
                     </div>
                     <?php endif; ?>

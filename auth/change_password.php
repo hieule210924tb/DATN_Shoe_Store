@@ -50,17 +50,6 @@ $pageTitle = 'Đổi mật khẩu - WinK';
 include dirname(__DIR__) . '/includes/header.php';
 ?>
 
-<div class="wink-breadcrumb">
-    <div class="container">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="<?php echo url('index.php'); ?>">Trang chủ</a></li>
-                <li class="breadcrumb-item active">Đổi mật khẩu</li>
-            </ol>
-        </nav>
-    </div>
-</div>
-
 <section class="section-padding">
     <div class="container">
         <div class="row justify-content-center">

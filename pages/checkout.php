@@ -1,7 +1,5 @@
 <?php
-/**
- * Trang thanh toán - WinK Shoe Store
- */
+/** Trang thanh toán - WinK Shoe Store */
 require_once dirname(__DIR__) . '/config/config.php';
 require_once dirname(__DIR__) . '/includes/auth_check.php';
 
@@ -9,7 +7,7 @@ $pdo = getDBConnection();
 $userId = getCurrentUserId();
 
 // Lấy giỏ hàng
-$stmt = $pdo->prepare("SELECT id FROM carts WHERE user_id = ?");
+$stmt = $pdo->prepare('SELECT id FROM carts WHERE user_id = ?');
 $stmt->execute([$userId]);
 $cart = $stmt->fetch();
 
@@ -18,14 +16,14 @@ if (!$cart) {
     redirect(url('pages/products.php'));
 }
 
-$stmt = $pdo->prepare("
+$stmt = $pdo->prepare('
     SELECT ci.*, p.name, p.slug, pv.size, pv.color, pv.stock_quantity,
            p.thumbnail as image_path
     FROM cart_items ci
     INNER JOIN products p ON ci.product_id = p.id
     INNER JOIN product_variants pv ON ci.variant_id = pv.id
     WHERE ci.cart_id = ?
-");
+');
 $stmt->execute([$cart['id']]);
 $cartItems = $stmt->fetchAll();
 
@@ -41,11 +39,11 @@ foreach ($cartItems as $item) {
 
 $shippingFee = SHIPPING_FEE_EXPRESS;
 if ($subtotal >= 300000) {
-    $shippingFee = 0; // Miễn phí ship cho đơn >= 300K
+    $shippingFee = 0;  // Miễn phí ship cho đơn >= 300K
 }
 
 // Lấy thông tin user
-$stmtUser = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+$stmtUser = $pdo->prepare('SELECT * FROM users WHERE id = ?');
 $stmtUser->execute([$userId]);
 $user = $stmtUser->fetch();
 
@@ -65,20 +63,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $paymentMethod = $_POST['payment_method'] ?? 'cod';
     $voucherCode = trim($_POST['voucher_code'] ?? '');
     $note = trim($_POST['note'] ?? '');
-    
+
     // Validate
-    if (empty($fullName)) $errors['full_name'] = 'Vui lòng nhập họ tên.';
-    if (empty($phone)) $errors['phone'] = 'Vui lòng nhập số điện thoại.';
-    elseif (!isValidPhone($phone)) $errors['phone'] = 'Số điện thoại không hợp lệ.';
-    if (empty($city)) $errors['city'] = 'Vui lòng nhập tỉnh/thành phố.';
-    if (empty($address)) $errors['address'] = 'Vui lòng nhập địa chỉ.';
-    
+    if (empty($fullName))
+        $errors['full_name'] = 'Vui lòng nhập họ tên.';
+    if (empty($phone))
+        $errors['phone'] = 'Vui lòng nhập số điện thoại.';
+    elseif (!isValidPhone($phone))
+        $errors['phone'] = 'Số điện thoại không hợp lệ.';
+    if (empty($city))
+        $errors['city'] = 'Vui lòng nhập tỉnh/thành phố.';
+    if (empty($address))
+        $errors['address'] = 'Vui lòng nhập địa chỉ.';
+
     // Áp dụng voucher
     if (!empty($voucherCode)) {
         $stmtV = $pdo->prepare("SELECT * FROM vouchers WHERE code = ? AND status = 'active' AND start_date <= NOW() AND end_date >= NOW()");
         $stmtV->execute([$voucherCode]);
         $voucher = $stmtV->fetch();
-        
+
         if (!$voucher) {
             $errors['voucher'] = 'Mã giảm giá không hợp lệ hoặc đã hết hạn.';
         } elseif ($voucher['usage_limit'] > 0 && $voucher['used_count'] >= $voucher['usage_limit']) {
@@ -97,14 +100,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     }
-    
+
     $totalAmount = $subtotal + $shippingFee - $voucherDiscount;
-    if ($totalAmount < 0) $totalAmount = 0;
-    
+    if ($totalAmount < 0)
+        $totalAmount = 0;
+
     if (empty($errors)) {
         try {
             $pdo->beginTransaction();
-            
+
             // Tạo đơn hàng
             $orderCode = generateOrderCode();
             try {
@@ -116,8 +120,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ");
                 $stmtOrder->execute([
                     $userId, $orderCode, $fullName, $phone, $city, $address, $note,
-                    $subtotal, $shippingFee, $voucherDiscount, 
-                    $appliedVoucher ? $appliedVoucher['id'] : null, 
+                    $subtotal, $shippingFee, $voucherDiscount,
+                    $appliedVoucher ? $appliedVoucher['id'] : null,
                     $totalAmount, $paymentMethod
                 ]);
             } catch (PDOException $exOrder) {
@@ -129,47 +133,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ");
                 $stmtOrder->execute([
                     $userId, $orderCode, $fullName, $phone, $city, $address, $note,
-                    $subtotal, $shippingFee, $voucherDiscount, 
-                    $appliedVoucher ? $appliedVoucher['id'] : null, 
+                    $subtotal, $shippingFee, $voucherDiscount,
+                    $appliedVoucher ? $appliedVoucher['id'] : null,
                     $totalAmount, $paymentMethod
                 ]);
             }
             $orderId = $pdo->lastInsertId();
-            
+
             // Thêm order items
             foreach ($cartItems as $item) {
-                $pdo->prepare("
+                $pdo->prepare('
                     INSERT INTO order_items (order_id, product_id, variant_id, product_name, size, color, quantity, price)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                ")->execute([
+                ')->execute([
                     $orderId, $item['product_id'], $item['variant_id'],
                     $item['name'], $item['size'], $item['color'],
                     $item['quantity'], $item['price']
                 ]);
-                
+
                 // Giảm tồn kho
-                $pdo->prepare("UPDATE product_variants SET stock_quantity = stock_quantity - ? WHERE id = ?")
+                $pdo
+                    ->prepare('UPDATE product_variants SET stock_quantity = stock_quantity - ? WHERE id = ?')
                     ->execute([$item['quantity'], $item['variant_id']]);
-                    
+
                 // Tăng số lượng đã bán
-                $pdo->prepare("UPDATE products SET total_sold = total_sold + ? WHERE id = ?")
+                $pdo
+                    ->prepare('UPDATE products SET total_sold = total_sold + ? WHERE id = ?')
                     ->execute([$item['quantity'], $item['product_id']]);
             }
-            
+
             // Cập nhật voucher
             if ($appliedVoucher) {
-                $pdo->prepare("UPDATE vouchers SET used_count = used_count + 1 WHERE id = ?")
+                $pdo
+                    ->prepare('UPDATE vouchers SET used_count = used_count + 1 WHERE id = ?')
                     ->execute([$appliedVoucher['id']]);
             }
-            
+
             // Xóa giỏ hàng
-            $pdo->prepare("DELETE FROM cart_items WHERE cart_id = ?")->execute([$cart['id']]);
-            
+            $pdo->prepare('DELETE FROM cart_items WHERE cart_id = ?')->execute([$cart['id']]);
+
             $pdo->commit();
-            
+
             setFlashMessage('success', "Đặt hàng thành công! Mã đơn hàng: $orderCode");
             redirect(url('pages/order_detail.php?id=' . $orderId));
-            
         } catch (Exception $ex) {
             $pdo->rollBack();
             $errors['general'] = 'Có lỗi xảy ra. Vui lòng thử lại.';
@@ -180,18 +186,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $pageTitle = 'Thanh toán - WinK Shoe Store';
 include dirname(__DIR__) . '/includes/header.php';
 ?>
-
-<!-- <div class="wink-breadcrumb">
-    <div class="container">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="<?php echo url('index.php'); ?>">Trang chủ</a></li>
-                <li class="breadcrumb-item"><a href="<?php echo url('pages/cart.php'); ?>">Giỏ hàng</a></li>
-                <li class="breadcrumb-item active">Thanh toán</li>
-            </ol>
-        </nav>
-    </div>
-</div> -->
 
 <section class="section-padding" style="padding-top: 30px;">
     <div class="container">

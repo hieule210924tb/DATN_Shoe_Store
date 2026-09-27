@@ -1,7 +1,5 @@
 <?php
-/**
- * Footer - WinK Shoe Store
- */
+/** Footer - WinK Shoe Store */
 ?>
     </main>
 
@@ -80,6 +78,62 @@
     <button class="back-to-top" id="backToTop" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
         <i class="fas fa-chevron-up"></i>
     </button>
+
+    <!-- Floating Chat Widget -->
+    <?php if (isLoggedIn()): ?>
+    <div class="chat-widget" id="chatWidget">
+        <!-- Chat Button -->
+        <button class="chat-widget-btn" id="chatWidgetBtn" onclick="toggleChatWidget()">
+            <i class="fas fa-comments"></i>
+            <span class="chat-widget-badge" id="chatUnreadBadge" style="display: none;">0</span>
+        </button>
+        
+        <!-- Chat Window -->
+        <div class="chat-widget-window" id="chatWidgetWindow">
+            <div class="chat-widget-header">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="chat-widget-avatar">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold">Hỗ trợ WinK</h6>
+                        <small class="text-success">
+                            <i class="fas fa-circle me-1" style="font-size: 6px;"></i>Online
+                        </small>
+                    </div>
+                </div>
+                <button class="chat-widget-close" onclick="toggleChatWidget()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="chat-widget-messages" id="chatWidgetMessages">
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-comments fa-2x mb-2"></i>
+                    <p style="font-size: 13px;">Bắt đầu cuộc trò chuyện!</p>
+                </div>
+            </div>
+            
+            <div class="chat-widget-input">
+                <form id="chatWidgetForm" class="d-flex gap-2">
+                    <input type="text" id="chatWidgetInput" class="form-control form-control-sm" 
+                           placeholder="Nhập tin nhắn..." autocomplete="off">
+                    <button type="submit" class="btn-wink btn-wink-sm">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    
+
+    <!-- Chat Widget JS -->
+    <script src="<?php echo asset('js/chat.js') . ($_cacheVersion ?? '?v=' . time()); ?>"></script>
+    <?php endif; ?>
+
+    <!-- Chat CSS -->
+    <link rel="stylesheet" href="<?php echo asset('css/chat.css') . ($_cacheVersion ?? '?v=' . time()); ?>">
 
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
