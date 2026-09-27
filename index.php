@@ -90,7 +90,7 @@ include __DIR__ . '/includes/header.php';
                 <div class="wink-hero-content">
                     <h1>Flash Sale<br>Giảm Đến 50%</h1>
                     <p>Chương trình khuyến mãi cực hot - Số lượng có hạn, nhanh tay đặt ngay!</p>
-                    <a href="<?php echo url('pages/vouchers.php'); ?>" class="btn-wink btn-wink-lg" style="background:#fff;color:#f36811;">
+                    <a href="<?php echo url('pages/vouchers.php'); ?>" class="btn-wink btn-wink-lg">
                         <i class="fas fa-tags"></i> Xem Khuyến Mãi
                     </a>
                 </div>
@@ -168,11 +168,11 @@ include __DIR__ . '/includes/header.php';
             <p>Khám phá các loại giày phù hợp với phong cách của bạn</p>
         </div>
         <div class="row g-3 justify-content-center">
-            <?php 
+            <?php
             $catIcons = ['fas fa-running', 'fas fa-shoe-prints', 'fas fa-star', 'fas fa-briefcase', 'fas fa-hiking', 'fas fa-tshirt'];
-            foreach ($categories as $index => $category): 
+            foreach ($categories as $index => $category):
                 $icon = $catIcons[$index % count($catIcons)];
-            ?>
+                ?>
             <div class="col-6 col-sm-4 col-md-3 col-lg-2">
                 <a href="<?php echo url('pages/products.php?category=' . e($category['slug'])); ?>" 
                    class="wink-category-card">

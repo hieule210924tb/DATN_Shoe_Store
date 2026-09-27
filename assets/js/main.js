@@ -9,7 +9,7 @@ const BASE_URL = document.querySelector('meta[name="base-url"]')?.content || '/D
 // =====================================================
 // BACK TO TOP BUTTON
 // =====================================================
-window.addEventListener('scroll', function() {
+window.addEventListener('scroll', function () {
     const backToTop = document.getElementById('backToTop');
     if (backToTop) {
         if (window.scrollY > 300) {
@@ -50,11 +50,11 @@ function loadCartDrawer() {
     const body = document.getElementById('cartDrawerBody');
     const footer = document.getElementById('cartDrawerFooter');
     const countEl = document.getElementById('cartDrawerCount');
-    
+
     if (!body) return;
-    
+
     body.innerHTML = '<div class="wink-loading"><div class="wink-spinner"></div></div>';
-    
+
     fetch(BASE_URL + '/ajax/cart_actions.php?action=get_cart')
         .then(response => response.json())
         .then(data => {
@@ -87,7 +87,7 @@ function loadCartDrawer() {
                 footer.style.display = 'block';
                 countEl.textContent = data.total_items;
                 document.getElementById('cartDrawerTotal').textContent = formatPrice(data.total_amount);
-                
+
                 // Cập nhật badge trên navbar
                 updateCartBadge(data.total_items);
             } else {
@@ -120,24 +120,24 @@ function addToCart(productId, variantId, quantity = 1) {
     formData.append('product_id', productId);
     formData.append('variant_id', variantId);
     formData.append('quantity', quantity);
-    
+
     fetch(BASE_URL + '/ajax/cart_actions.php', {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showToast('success', data.message || 'Đã thêm vào giỏ hàng!');
-            openCartDrawer();
-        } else {
-            showToast('error', data.message || 'Không thể thêm vào giỏ hàng.');
-        }
-    })
-    .catch(error => {
-        console.error('Lỗi:', error);
-        showToast('error', 'Có lỗi xảy ra. Vui lòng thử lại.');
-    });
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('success', data.message || 'Đã thêm vào giỏ hàng!');
+                openCartDrawer();
+            } else {
+                showToast('error', data.message || 'Không thể thêm vào giỏ hàng.');
+            }
+        })
+        .catch(error => {
+            console.error('Lỗi:', error);
+            showToast('error', 'Có lỗi xảy ra. Vui lòng thử lại.');
+        });
 }
 
 /**
@@ -148,27 +148,27 @@ function updateCartQuantity(cartItemId, quantity) {
         removeCartItem(cartItemId);
         return;
     }
-    
+
     const formData = new FormData();
     formData.append('action', 'update');
     formData.append('cart_item_id', cartItemId);
     formData.append('quantity', quantity);
-    
+
     fetch(BASE_URL + '/ajax/cart_actions.php', {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            loadCartDrawer();
-        } else {
-            showToast('error', data.message || 'Không thể cập nhật số lượng.');
-        }
-    })
-    .catch(error => {
-        console.error('Lỗi:', error);
-    });
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                loadCartDrawer();
+            } else {
+                showToast('error', data.message || 'Không thể cập nhật số lượng.');
+            }
+        })
+        .catch(error => {
+            console.error('Lỗi:', error);
+        });
 }
 
 /**
@@ -178,21 +178,21 @@ function removeCartItem(cartItemId) {
     const formData = new FormData();
     formData.append('action', 'remove');
     formData.append('cart_item_id', cartItemId);
-    
+
     fetch(BASE_URL + '/ajax/cart_actions.php', {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showToast('success', 'Đã xóa sản phẩm khỏi giỏ hàng.');
-            loadCartDrawer();
-        }
-    })
-    .catch(error => {
-        console.error('Lỗi:', error);
-    });
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('success', 'Đã xóa sản phẩm khỏi giỏ hàng.');
+                loadCartDrawer();
+            }
+        })
+        .catch(error => {
+            console.error('Lỗi:', error);
+        });
 }
 
 /**
@@ -217,41 +217,41 @@ function toggleWishlist(productId, btn) {
     const formData = new FormData();
     formData.append('action', 'toggle');
     formData.append('product_id', productId);
-    
+
     fetch(BASE_URL + '/ajax/wishlist_actions.php', {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            if (data.action === 'added') {
-                btn.classList.add('wishlist-active');
-                showToast('success', 'Đã thêm vào danh sách yêu thích!');
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (data.action === 'added') {
+                    btn.classList.add('wishlist-active');
+                    showToast('success', 'Đã thêm vào danh sách yêu thích!');
+                } else {
+                    btn.classList.remove('wishlist-active');
+                    showToast('info', 'Đã xóa khỏi danh sách yêu thích.');
+                }
+                // Cập nhật badge wishlist
+                const wishlistBadge = document.querySelector('#navWishlist .badge');
+                if (wishlistBadge) {
+                    wishlistBadge.textContent = data.count;
+                    wishlistBadge.style.display = data.count > 0 ? 'flex' : 'none';
+                }
             } else {
-                btn.classList.remove('wishlist-active');
-                showToast('info', 'Đã xóa khỏi danh sách yêu thích.');
+                if (data.login_required) {
+                    showToast('warning', 'Vui lòng đăng nhập để sử dụng tính năng này.');
+                    setTimeout(() => {
+                        window.location.href = BASE_URL + '/auth/login.php';
+                    }, 1500);
+                } else {
+                    showToast('error', data.message || 'Có lỗi xảy ra.');
+                }
             }
-            // Cập nhật badge wishlist
-            const wishlistBadge = document.querySelector('#navWishlist .badge');
-            if (wishlistBadge) {
-                wishlistBadge.textContent = data.count;
-                wishlistBadge.style.display = data.count > 0 ? 'flex' : 'none';
-            }
-        } else {
-            if (data.login_required) {
-                showToast('warning', 'Vui lòng đăng nhập để sử dụng tính năng này.');
-                setTimeout(() => {
-                    window.location.href = BASE_URL + '/auth/login.php';
-                }, 1500);
-            } else {
-                showToast('error', data.message || 'Có lỗi xảy ra.');
-            }
-        }
-    })
-    .catch(error => {
-        console.error('Lỗi:', error);
-    });
+        })
+        .catch(error => {
+            console.error('Lỗi:', error);
+        });
 }
 
 // =====================================================
@@ -267,16 +267,16 @@ function showToast(type, message) {
     // Xóa toast cũ
     const existingToasts = document.querySelectorAll('.wink-toast');
     existingToasts.forEach(t => t.remove());
-    
+
     const icons = {
         success: '<i class="fas fa-check-circle"></i>',
         error: '<i class="fas fa-exclamation-circle"></i>',
         warning: '<i class="fas fa-exclamation-triangle"></i>',
         info: '<i class="fas fa-info-circle"></i>'
     };
-    
+
     const toastType = type || 'info';
-    
+
     const toastHtml = `
         <div class="wink-toast">
             <div class="wink-toast-card wink-toast-${toastType}">
@@ -288,9 +288,9 @@ function showToast(type, message) {
             </div>
         </div>
     `;
-    
+
     document.body.insertAdjacentHTML('beforeend', toastHtml);
-    
+
     // Tự động ẩn sau 3.5 giây
     setTimeout(() => {
         const toast = document.querySelector('.wink-toast');
@@ -349,7 +349,7 @@ function renderStars(rating, size = '14px') {
 // =====================================================
 // DARK MODE - Apply immediately to prevent flash
 // =====================================================
-(function() {
+(function () {
     const savedTheme = localStorage.getItem('wink-theme');
     if (savedTheme === 'dark') {
         document.documentElement.setAttribute('data-theme', 'dark');
@@ -365,24 +365,37 @@ function renderStars(rating, size = '14px') {
 // =====================================================
 // INIT
 // =====================================================
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Đóng cart drawer khi nhấn Escape
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') {
             closeCartDrawer();
         }
     });
 
     // =====================================================
+    // AUTO-DISMISS BOOTSTRAP ALERT (Flash Message)
+    // =====================================================
+    const alerts = document.querySelectorAll('.alert.alert-dismissible');
+    alerts.forEach(function(alert) {
+        setTimeout(function() {
+            alert.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            alert.style.opacity = '0';
+            alert.style.transform = 'translateY(-8px)';
+            setTimeout(function() { alert.remove(); }, 500);
+        }, 5000);
+    });
+
+    // =====================================================
     // DARK MODE TOGGLE
     // =====================================================
     const darkModeToggle = document.getElementById('darkModeToggle');
-    
+
     if (darkModeToggle) {
-        darkModeToggle.addEventListener('click', function() {
+        darkModeToggle.addEventListener('click', function () {
             const html = document.documentElement;
             const currentTheme = html.getAttribute('data-theme');
-            
+
             if (currentTheme === 'dark') {
                 html.removeAttribute('data-theme');
                 localStorage.setItem('wink-theme', 'light');
@@ -395,7 +408,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Listen for system theme changes
     if (window.matchMedia) {
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (e) {
             // Only auto-switch if user hasn't manually set a preference
             const manualPref = localStorage.getItem('wink-theme');
             if (!manualPref) {
