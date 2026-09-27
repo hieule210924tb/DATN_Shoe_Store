@@ -16,14 +16,15 @@ $userId = getCurrentUserId();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
-    $productId = (int)($_POST['product_id'] ?? 0);
-    
-    if ($productId <= 0) {
-        echo json_encode(['success' => false, 'message' => 'Dữ liệu không hợp lệ.']);
-        exit;
-    }
     
     if ($action === 'toggle') {
+        $productId = (int)($_POST['product_id'] ?? 0);
+        
+        if ($productId <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Dữ liệu không hợp lệ.']);
+            exit;
+        }
+        
         // Kiểm tra sản phẩm tồn tại
         $stmt = $pdo->prepare("SELECT id FROM products WHERE id = ? AND status = 'active'");
         $stmt->execute([$productId]);
@@ -58,6 +59,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'success' => true,
             'action' => $actionDone,
             'count' => $count
+        ]);
+    }
+    
+    if ($action === 'remove') {
+        $wishlistId = (int)($_POST['wishlist_id'] ?? 0);
+        
+        if ($wishlistId <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Dữ liệu không hợp lệ.']);
+            exit;
+        }
+        
+        // Kiểm tra wishlist item thuộc về user hiện tại
+        $stmt = $pdo->prepare("SELECT id FROM wishlists WHERE id = ? AND user_id = ?");
+        $stmt->execute([$wishlistId, $userId]);
+        if (!$stmt->fetch()) {
+            echo json_encode(['success' => false, 'message' => 'Không tìm thấy sản phẩm trong danh sách yêu thích.']);
+            exit;
+        }
+        
+        // Xóa khỏi wishlist
+        $stmt = $pdo->prepare("DELETE FROM wishlists WHERE id = ?");
+        $stmt->execute([$wishlistId]);
+        
+        // Đếm số lượng wishlist
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM wishlists WHERE user_id = ?");
+        $stmt->execute([$userId]);
+        $count = (int)$stmt->fetchColumn();
+        
+        echo json_encode([
+            'success' => true,
+            'count' => $count
+        ]);
+    }
+    
+    if ($action === 'clear') {
+        // Xóa tất cả wishlist của user
+        $stmt = $pdo->prepare("DELETE FROM wishlists WHERE user_id = ?");
+        $stmt->execute([$userId]);
+        
+        echo json_encode([
+            'success' => true,
+            'count' => 0
         ]);
     }
 }

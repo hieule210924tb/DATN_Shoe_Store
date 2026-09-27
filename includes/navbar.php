@@ -148,9 +148,12 @@ $currentPage = basename($_SERVER['PHP_SELF']);
             <span class="mobile-cart-badge cart-count-badge"><?php echo $cartCount; ?></span>
         <?php endif; ?>
     </button>
-    <a href="<?php echo url('pages/orders.php'); ?>" class="<?php echo ($currentPage == 'orders.php') ? 'active' : ''; ?>">
-        <i class="fas fa-box"></i>
-        <span>Đơn hàng</span>
+    <a href="<?php echo url('pages/wishlist.php'); ?>" class="<?php echo ($currentPage == 'wishlist.php') ? 'active' : ''; ?>">
+        <i class="fas fa-heart"></i>
+        <span>Yêu thích</span>
+        <?php if ($wishlistCount > 0): ?>
+            <span class="mobile-cart-badge"><?php echo $wishlistCount; ?></span>
+        <?php endif; ?>
     </a>
     <a href="<?php echo isLoggedIn() ? url('pages/profile.php') : url('auth/login.php'); ?>">
         <i class="fas fa-user"></i>
