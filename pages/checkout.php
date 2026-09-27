@@ -58,8 +58,11 @@ $appliedVoucher = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fullName = trim($_POST['full_name'] ?? '');
     $phone = trim($_POST['phone'] ?? '');
-    $city = trim($_POST['city'] ?? '');
-    $address = trim($_POST['address'] ?? '');
+    $city = trim($_POST['city'] ?? '');          // tên tỉnh/thành (từ hidden)
+    $ward = trim($_POST['ward'] ?? '');           // tên xã/phường (từ hidden)
+    $streetAddress = trim($_POST['street_address'] ?? ''); // số nhà, tên đường
+    // Ghép địa chỉ đầy đủ
+    $address = implode(', ', array_filter([$streetAddress, $ward, $city]));
     $paymentMethod = $_POST['payment_method'] ?? 'cod';
     $voucherCode = trim($_POST['voucher_code'] ?? '');
     $note = trim($_POST['note'] ?? '');
@@ -72,9 +75,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     elseif (!isValidPhone($phone))
         $errors['phone'] = 'Số điện thoại không hợp lệ.';
     if (empty($city))
-        $errors['city'] = 'Vui lòng nhập tỉnh/thành phố.';
-    if (empty($address))
-        $errors['address'] = 'Vui lòng nhập địa chỉ.';
+        $errors['city'] = 'Vui lòng chọn tỉnh/thành phố.';
+    if (empty($ward))
+        $errors['ward'] = 'Vui lòng chọn xã/phường.';
+    if (empty($streetAddress))
+        $errors['street_address'] = 'Vui lòng nhập số nhà, tên đường.';
 
     // Áp dụng voucher
     if (!empty($voucherCode)) {
@@ -184,6 +189,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $pageTitle = 'Thanh toán - WinK Shoe Store';
+$extraJS = ['address.js'];
 include dirname(__DIR__) . '/includes/header.php';
 ?>
 
@@ -214,16 +220,31 @@ include dirname(__DIR__) . '/includes/header.php';
                                        value="<?php echo e($_POST['phone'] ?? $user['phone']); ?>" required>
                                 <?php if (!empty($errors['phone'])): ?><div class="invalid-feedback"><?php echo e($errors['phone']); ?></div><?php endif; ?>
                             </div>
+                            <!-- Hidden fields lưu tên địa chỉ -->
+                            <input type="hidden" name="city" id="hidden_city" value="<?php echo e($_POST['city'] ?? $user['city'] ?? $user['province'] ?? ''); ?>">
+                            <input type="hidden" name="ward" id="hidden_ward" value="<?php echo e($_POST['ward'] ?? ''); ?>">
+
                             <div class="col-md-6">
                                 <label class="form-label">Tỉnh/Thành phố <span class="text-danger">*</span></label>
-                                <input type="text" name="city" class="form-control <?php echo !empty($errors['city']) ? 'is-invalid' : ''; ?>" 
-                                       value="<?php echo e($_POST['city'] ?? $user['city'] ?? ''); ?>" required>
-                                <?php if (!empty($errors['city'])): ?><div class="invalid-feedback"><?php echo e($errors['city']); ?></div><?php endif; ?>
+                                <select id="select_province" class="form-select <?php echo !empty($errors['city']) ? 'is-invalid' : ''; ?>">
+                                    <option value="">-- Chọn Tỉnh/Thành phố --</option>
+                                </select>
+                                <?php if (!empty($errors['city'])): ?><div class="invalid-feedback d-block"><?php echo e($errors['city']); ?></div><?php endif; ?>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Xã/Phường/Thị trấn <span class="text-danger">*</span></label>
+                                <select id="select_ward" class="form-select <?php echo !empty($errors['ward']) ? 'is-invalid' : ''; ?>" disabled>
+                                    <option value="">-- Chọn sau khi chọn Tỉnh --</option>
+                                </select>
+                                <?php if (!empty($errors['ward'])): ?><div class="invalid-feedback d-block"><?php echo e($errors['ward']); ?></div><?php endif; ?>
                             </div>
                             <div class="col-12">
-                                <label class="form-label">Địa chỉ chi tiết <span class="text-danger">*</span></label>
-                                <textarea name="address" class="form-control <?php echo !empty($errors['address']) ? 'is-invalid' : ''; ?>" rows="2" required><?php echo e($_POST['address'] ?? $user['address'] ?? ''); ?></textarea>
-                                <?php if (!empty($errors['address'])): ?><div class="invalid-feedback"><?php echo e($errors['address']); ?></div><?php endif; ?>
+                                <label class="form-label">Số nhà, tên đường <span class="text-danger">*</span></label>
+                                <input type="text" name="street_address" id="street_address"
+                                       class="form-control <?php echo !empty($errors['street_address']) ? 'is-invalid' : ''; ?>"
+                                       placeholder="VD: 123 Nguyễn Trãi"
+                                       value="<?php echo e($_POST['street_address'] ?? ''); ?>">
+                                <?php if (!empty($errors['street_address'])): ?><div class="invalid-feedback"><?php echo e($errors['street_address']); ?></div><?php endif; ?>
                             </div>
                             <div class="col-12">
                                 <label class="form-label">Ghi chú</label>
@@ -325,5 +346,14 @@ include dirname(__DIR__) . '/includes/header.php';
         </form>
     </div>
 </section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    initAddressSelector({
+        defaultProvince: <?php echo json_encode($_POST['city'] ?? $user['province'] ?? $user['city'] ?? ''); ?>,
+        defaultWard:     <?php echo json_encode($_POST['ward'] ?? ''); ?>
+    });
+});
+</script>
 
 <?php include dirname(__DIR__) . '/includes/footer.php'; ?>

@@ -14,8 +14,10 @@ $user = $stmt->fetch();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fullName = trim($_POST['full_name'] ?? '');
     $phone = trim($_POST['phone'] ?? '');
-    $city = trim($_POST['city'] ?? '');
-    $address = trim($_POST['address'] ?? '');
+    $city = trim($_POST['city'] ?? '');           // tên tỉnh (từ hidden)
+    $ward = trim($_POST['ward'] ?? '');            // tên xã (từ hidden)
+    $streetAddress = trim($_POST['street_address'] ?? ''); // số nhà
+    $address = implode(', ', array_filter([$streetAddress, $ward, $city]));
 
     if (empty($fullName))
         $errors['full_name'] = 'Vui lòng nhập họ tên.';
@@ -53,6 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $pageTitle = 'Thông tin cá nhân - WinK';
+$extraJS = ['address.js'];
 include dirname(__DIR__) . '/includes/header.php';
 ?>
 <section class="section-padding">
@@ -97,13 +100,27 @@ include dirname(__DIR__) . '/includes/header.php';
                                     <label class="form-label">Số điện thoại</label>
                                     <input type="text" name="phone" class="form-control" value="<?php echo e($_POST['phone'] ?? $user['phone'] ?? ''); ?>">
                                 </div>
+                                <!-- Hidden fields -->
+                                <input type="hidden" name="city" id="hidden_city" value="<?php echo e($_POST['city'] ?? $user['province'] ?? $user['city'] ?? ''); ?>">
+                                <input type="hidden" name="ward" id="hidden_ward" value="<?php echo e($_POST['ward'] ?? ''); ?>">
+
                                 <div class="mb-3">
                                     <label class="form-label">Tỉnh/Thành phố</label>
-                                    <input type="text" name="city" class="form-control" value="<?php echo e($_POST['city'] ?? $user['province'] ?? $user['city'] ?? ''); ?>">
+                                    <select id="select_province" class="form-select">
+                                        <option value="">-- Chọn Tỉnh/Thành phố --</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Xã/Phường/Thị trấn</label>
+                                    <select id="select_ward" class="form-select" disabled>
+                                        <option value="">-- Chọn sau khi chọn Tỉnh --</option>
+                                    </select>
                                 </div>
                                 <div class="mb-4">
-                                    <label class="form-label">Địa chỉ chi tiết</label>
-                                    <textarea name="address" class="form-control" rows="2"><?php echo e($_POST['address'] ?? $user['address'] ?? ''); ?></textarea>
+                                    <label class="form-label">Địa chỉ chi tiết (số nhà, tên đường)</label>
+                                    <input type="text" name="street_address" class="form-control"
+                                           placeholder="VD: 123 Nguyễn Trãi"
+                                           value="<?php echo e($_POST['street_address'] ?? ''); ?>">
                                 </div>
                                 <button type="submit" class="btn-wink px-4 py-2">Lưu Thay Đổi</button>
                             </div>
@@ -144,6 +161,15 @@ function previewImage(input) {
         reader.readAsDataURL(input.files[0]);
     }
 }
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    initAddressSelector({
+        defaultProvince: <?php echo json_encode($_POST['city'] ?? $user['province'] ?? $user['city'] ?? ''); ?>,
+        defaultWard:     <?php echo json_encode($_POST['ward'] ?? ''); ?>
+    });
+});
 </script>
 
 <?php include dirname(__DIR__) . '/includes/footer.php'; ?>
