@@ -162,10 +162,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $item['quantity'], $item['price']
                 ]);
 
-                // Giảm tồn kho
-                $pdo
-                    ->prepare('UPDATE product_variants SET stock_quantity = stock_quantity - ? WHERE id = ?')
-                    ->execute([$item['quantity'], $item['variant_id']]);
+                // Giảm tồn kho & cập nhật trạng thái tự động
+                $pdo->prepare('
+                    UPDATE product_variants
+                    SET stock_quantity = GREATEST(0, stock_quantity - ?),
+                        status = CASE
+                            WHEN GREATEST(0, stock_quantity - ?) = 0    THEN "out_of_stock"
+                            WHEN GREATEST(0, stock_quantity - ?) <= 5   THEN "low_stock"
+                            ELSE "in_stock"
+                        END
+                    WHERE id = ?
+                ')->execute([$item['quantity'], $item['quantity'], $item['quantity'], $item['variant_id']]);
 
                 // Tăng số lượng đã bán
                 $pdo

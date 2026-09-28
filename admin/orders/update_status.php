@@ -73,9 +73,15 @@ try {
         foreach ($items as $item) {
             $pdo->prepare("
                 UPDATE product_variants
-                SET stock_quantity = stock_quantity + ?, updated_at = NOW()
+                SET stock_quantity = stock_quantity + ?,
+                    status = CASE
+                        WHEN (stock_quantity + ?) = 0   THEN 'out_of_stock'
+                        WHEN (stock_quantity + ?) <= 5  THEN 'low_stock'
+                        ELSE 'in_stock'
+                    END,
+                    updated_at = NOW()
                 WHERE id = ?
-            ")->execute([$item['quantity'], $item['variant_id']]);
+            ")->execute([$item['quantity'], $item['quantity'], $item['quantity'], $item['variant_id']]);
         }
 
         // Nếu đã thanh toán online → chuyển về refunded
