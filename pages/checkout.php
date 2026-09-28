@@ -116,31 +116,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Tạo đơn hàng
             $orderCode = generateOrderCode();
+
+            // VNPay/MoMo đã thanh toán online → xác nhận luôn
+            // COD → chờ xác nhận
+            $initialStatus        = in_array($paymentMethod, ['vnpay', 'momo']) ? 'confirmed' : 'pending';
+            $initialPaymentStatus = in_array($paymentMethod, ['vnpay', 'momo']) ? 'paid'      : 'unpaid';
+
             try {
                 $stmtOrder = $pdo->prepare("
                     INSERT INTO orders (user_id, order_code, full_name, phone, city, address, note, 
                         subtotal, shipping_fee, discount_amount, voucher_id, total_amount, 
                         payment_method, payment_status, status)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'unpaid', 'pending')
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ");
                 $stmtOrder->execute([
                     $userId, $orderCode, $fullName, $phone, $city, $address, $note,
                     $subtotal, $shippingFee, $voucherDiscount,
                     $appliedVoucher ? $appliedVoucher['id'] : null,
-                    $totalAmount, $paymentMethod
+                    $totalAmount, $paymentMethod, $initialPaymentStatus, $initialStatus
                 ]);
             } catch (PDOException $exOrder) {
                 $stmtOrder = $pdo->prepare("
                     INSERT INTO orders (user_id, order_code, receiver_name, receiver_phone, receiver_province, receiver_address, note, 
                         subtotal, shipping_fee, discount_amount, voucher_id, total_amount, 
                         payment_method, payment_status, status)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'unpaid', 'pending')
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ");
                 $stmtOrder->execute([
                     $userId, $orderCode, $fullName, $phone, $city, $address, $note,
                     $subtotal, $shippingFee, $voucherDiscount,
                     $appliedVoucher ? $appliedVoucher['id'] : null,
-                    $totalAmount, $paymentMethod
+                    $totalAmount, $paymentMethod, $initialPaymentStatus, $initialStatus
                 ]);
             }
             $orderId = $pdo->lastInsertId();
@@ -179,7 +185,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $pdo->commit();
 
-            setFlashMessage('success', "Đặt hàng thành công! Mã đơn hàng: $orderCode");
+            $successMsg = in_array($paymentMethod, ['vnpay', 'momo'])
+                ? "Đặt hàng thành công! Đơn hàng $orderCode đã được xác nhận (đã thanh toán online)."
+                : "Đặt hàng thành công! Mã đơn hàng: $orderCode. Chúng tôi sẽ xác nhận sớm nhất.";
+            setFlashMessage('success', $successMsg);
             redirect(url('pages/order_detail.php?id=' . $orderId));
         } catch (Exception $ex) {
             $pdo->rollBack();
