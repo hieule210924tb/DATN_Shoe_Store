@@ -31,7 +31,7 @@ if (!$order) {
 
 // Lấy sản phẩm trong đơn
 $itemsStmt = $pdo->prepare("
-    SELECT oi.*, p.slug
+    SELECT oi.*, p.slug, p.thumbnail AS product_image
     FROM order_items oi
     LEFT JOIN products p ON oi.product_id = p.id
     WHERE oi.order_id = ?
