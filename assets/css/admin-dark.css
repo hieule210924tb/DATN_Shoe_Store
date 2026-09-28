@@ -1,0 +1,458 @@
+/* ═══════════════════════════════════════════════════════════
+   Admin Dark Mode - WinK Shoe Store
+   Kích hoạt khi <body> có class "dark-mode"
+═══════════════════════════════════════════════════════════ */
+
+/* ── Transition mượt khi chuyển mode ── */
+body,
+.wrapper,
+.main-header,
+.main-sidebar,
+.content-wrapper,
+.main-footer,
+.card,
+.card-header,
+.card-body,
+.card-footer,
+.nav-sidebar .nav-link,
+.dropdown-menu,
+.modal-content,
+table,
+thead,
+tbody,
+tr,
+td,
+th,
+.input-group-text,
+.form-control,
+select,
+.list-group-item,
+.small-box,
+.info-box,
+.alert,
+.badge,
+.btn {
+    transition: background-color .25s ease, color .2s ease,
+        border-color .2s ease, box-shadow .2s ease;
+}
+
+/* ══════════════════════════════════════════════════════════
+   BODY / WRAPPER
+══════════════════════════════════════════════════════════ */
+body.dark-mode {
+    background-color: #000 !important;
+    color: #e2e8f0 !important;
+}
+
+body.dark-mode .wrapper {
+    background-color: #000 !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   TOP NAVBAR
+══════════════════════════════════════════════════════════ */
+body.dark-mode .main-header.navbar {
+    background-color: #1a1d2e !important;
+    border-bottom: 1px solid #2d3148 !important;
+}
+
+body.dark-mode .main-header .nav-link {
+    color: #cbd5e1 !important;
+}
+
+body.dark-mode .main-header .nav-link:hover {
+    color: #f36811 !important;
+}
+
+body.dark-mode .dropdown-menu {
+    background-color: #1e2235 !important;
+    border-color: #2d3148 !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .5);
+}
+
+body.dark-mode .dropdown-item {
+    color: #cbd5e1 !important;
+}
+
+body.dark-mode .dropdown-item:hover {
+    background-color: #2d3148 !important;
+    color: #f36811 !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   SIDEBAR
+══════════════════════════════════════════════════════════ */
+body.dark-mode .main-sidebar {
+    background-color: #12151f !important;
+}
+
+body.dark-mode .sidebar {
+    background-color: #12151f !important;
+}
+
+body.dark-mode .nav-sidebar .nav-link {
+    color: #94a3b8 !important;
+}
+
+body.dark-mode .nav-sidebar .nav-link:hover,
+body.dark-mode .nav-sidebar .nav-link.active {
+    color: #fff !important;
+}
+
+body.dark-mode .nav-sidebar .nav-treeview .nav-link {
+    color: #64748b !important;
+}
+
+body.dark-mode .nav-sidebar .nav-treeview .nav-link:hover {
+    color: #cbd5e1 !important;
+}
+
+body.dark-mode .user-panel {
+    border-bottom: 1px solid #1e2235 !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   CONTENT WRAPPER
+══════════════════════════════════════════════════════════ */
+body.dark-mode .content-wrapper {
+    background-color: #0f1117 !important;
+}
+
+body.dark-mode .content-header h1 {
+    color: #e2e8f0 !important;
+}
+
+body.dark-mode .breadcrumb-item a {
+    color: #94a3b8 !important;
+}
+
+body.dark-mode .breadcrumb-item.active {
+    color: #64748b !important;
+}
+
+body.dark-mode .breadcrumb-item+.breadcrumb-item::before {
+    color: #475569 !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   CARDS
+══════════════════════════════════════════════════════════ */
+body.dark-mode .card {
+    background-color: #1a1d2e !important;
+    border: 1px solid #2d3148 !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, .4) !important;
+}
+
+body.dark-mode .card-header {
+    background-color: #1e2235 !important;
+    border-bottom: 1px solid #2d3148 !important;
+    color: #e2e8f0 !important;
+}
+
+body.dark-mode .card-title {
+    color: #e2e8f0 !important;
+}
+
+body.dark-mode .card-body {
+    color: #cbd5e1 !important;
+}
+
+body.dark-mode .card-footer {
+    background-color: #1e2235 !important;
+    border-top: 1px solid #2d3148 !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   TABLES
+══════════════════════════════════════════════════════════ */
+body.dark-mode table {
+    color: #cbd5e1 !important;
+}
+
+body.dark-mode thead,
+body.dark-mode thead tr {
+    background-color: #1e2235 !important;
+}
+
+body.dark-mode th {
+    background-color: #1e2235 !important;
+    color: #94a3b8 !important;
+    border-bottom: 2px solid #2d3148 !important;
+}
+
+body.dark-mode td {
+    border-color: #2d3148 !important;
+    color: #cbd5e1 !important;
+}
+
+body.dark-mode .table-hover tbody tr:hover {
+    background-color: #222540 !important;
+}
+
+body.dark-mode .table-danger {
+    background-color: #3b1a1a !important;
+}
+
+body.dark-mode .table-warning {
+    background-color: #3b2e10 !important;
+}
+
+body.dark-mode .table-success {
+    background-color: #132a1f !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   FORMS
+══════════════════════════════════════════════════════════ */
+body.dark-mode .form-control,
+body.dark-mode select.form-control,
+body.dark-mode .form-select,
+body.dark-mode textarea.form-control,
+body.dark-mode input.form-control {
+    background-color: #12151f !important;
+    border-color: #2d3148 !important;
+    color: #e2e8f0 !important;
+}
+
+body.dark-mode .form-control:focus,
+body.dark-mode select.form-control:focus {
+    background-color: #1a1d2e !important;
+    border-color: #f36811 !important;
+    box-shadow: 0 0 0 .2rem rgba(243, 104, 17, .25) !important;
+    color: #e2e8f0 !important;
+}
+
+body.dark-mode .form-control::placeholder {
+    color: #475569 !important;
+}
+
+body.dark-mode .input-group-text {
+    background-color: #1e2235 !important;
+    border-color: #2d3148 !important;
+    color: #94a3b8 !important;
+}
+
+body.dark-mode label.form-label,
+body.dark-mode .col-form-label {
+    color: #94a3b8 !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   BUTTONS
+══════════════════════════════════════════════════════════ */
+body.dark-mode .btn-outline-secondary {
+    color: #94a3b8 !important;
+    border-color: #2d3148 !important;
+}
+
+body.dark-mode .btn-outline-secondary:hover {
+    background-color: #2d3148 !important;
+    color: #e2e8f0 !important;
+}
+
+body.dark-mode .btn-light {
+    background-color: #1e2235 !important;
+    border-color: #2d3148 !important;
+    color: #cbd5e1 !important;
+}
+
+body.dark-mode .btn-default {
+    background-color: #1e2235 !important;
+    border-color: #2d3148 !important;
+    color: #cbd5e1 !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   LIST GROUP
+══════════════════════════════════════════════════════════ */
+body.dark-mode .list-group-item {
+    background-color: #1a1d2e !important;
+    border-color: #2d3148 !important;
+    color: #cbd5e1 !important;
+}
+
+body.dark-mode .list-group-item.active {
+    background-color: #f36811 !important;
+    border-color: #f36811 !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   BADGES
+══════════════════════════════════════════════════════════ */
+body.dark-mode .badge-light {
+    background-color: #1e2235 !important;
+    color: #94a3b8 !important;
+    border-color: #2d3148 !important;
+}
+
+body.dark-mode .badge-secondary {
+    background-color: #334155 !important;
+    color: #e2e8f0 !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   SMALL-BOX (Stat cards)
+══════════════════════════════════════════════════════════ */
+body.dark-mode .small-box {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, .4) !important;
+}
+
+body.dark-mode .small-box.bg-secondary {
+    background-color: #334155 !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   PAGINATION
+══════════════════════════════════════════════════════════ */
+body.dark-mode .page-link {
+    background-color: #1a1d2e !important;
+    border-color: #2d3148 !important;
+    color: #94a3b8 !important;
+}
+
+body.dark-mode .page-link:hover {
+    background-color: #2d3148 !important;
+    color: #f36811 !important;
+}
+
+body.dark-mode .page-item.disabled .page-link {
+    background-color: #12151f !important;
+    color: #475569 !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   FOOTER
+══════════════════════════════════════════════════════════ */
+body.dark-mode .main-footer {
+    background-color: #1a1d2e !important;
+    border-top: 1px solid #2d3148 !important;
+    color: #64748b !important;
+}
+
+body.dark-mode .main-footer a {
+    color: #94a3b8 !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   ALERTS / FLASH MESSAGES
+══════════════════════════════════════════════════════════ */
+body.dark-mode .alert-success {
+    background-color: #132a1f !important;
+    border-color: #166534 !important;
+    color: #86efac !important;
+}
+
+body.dark-mode .alert-danger {
+    background-color: #3b1a1a !important;
+    border-color: #991b1b !important;
+    color: #fca5a5 !important;
+}
+
+body.dark-mode .alert-warning {
+    background-color: #3b2e10 !important;
+    border-color: #92400e !important;
+    color: #fde68a !important;
+}
+
+body.dark-mode .alert-info {
+    background-color: #0c2340 !important;
+    border-color: #1e40af !important;
+    color: #93c5fd !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   TEXT
+══════════════════════════════════════════════════════════ */
+body.dark-mode .text-muted {
+    color: #64748b !important;
+}
+
+body.dark-mode .text-dark {
+    color: #cbd5e1 !important;
+}
+
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4,
+body.dark-mode h5,
+body.dark-mode h6 {
+    color: #e2e8f0;
+}
+
+body.dark-mode code {
+    background-color: #1e2235 !important;
+    color: #f472b6 !important;
+}
+
+body.dark-mode hr {
+    border-color: #2d3148 !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   DARK MODE SWITCHER — 2 nút ☀️ / 🌙
+══════════════════════════════════════════════════════════ */
+#dm-switcher {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    background: #e9ecef;
+    border-radius: 8px;
+    padding: 3px;
+}
+
+#dm-switcher button {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: #6c757d;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .2s ease, color .2s ease, transform .15s ease;
+}
+
+#dm-switcher button:hover {
+    background: rgba(0, 0, 0, .08);
+    color: #343a40;
+    transform: scale(1.1);
+}
+
+/* Nút đang active */
+#btn-light-mode.dm-active {
+    background: #fff;
+    color: #f59e0b;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .15);
+}
+
+#btn-dark-mode.dm-active {
+    background: #f36811;
+    color: #fff;
+    box-shadow: 0 1px 4px rgba(243, 104, 17, .4);
+}
+
+/* Dark mode: đổi màu nền container switcher */
+body.dark-mode #dm-switcher {
+    background: #2d3148;
+}
+
+body.dark-mode #dm-switcher button:hover {
+    background: rgba(255, 255, 255, .08);
+    color: #e2e8f0;
+}
+
+body.dark-mode #btn-light-mode.dm-active {
+    background: #475569;
+    color: #fde68a;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .3);
+}
+
+body.dark-mode #btn-dark-mode.dm-active {
+    background: #f36811;
+    color: #fff;
+    box-shadow: 0 1px 6px rgba(243, 104, 17, .5);
+}
