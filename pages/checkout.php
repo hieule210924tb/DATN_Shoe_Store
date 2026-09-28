@@ -37,10 +37,13 @@ foreach ($cartItems as $item) {
     $subtotal += $item['price'] * $item['quantity'];
 }
 
-$shippingFee = SHIPPING_FEE_EXPRESS;
-if ($subtotal >= 300000) {
-    $shippingFee = 0;  // Miễn phí ship cho đơn >= 300K
-}
+// Phí vận chuyển theo phương thức
+$shippingMethod = $_POST['shipping_method'] ?? 'standard';
+$shippingFees   = [
+    'standard' => SHIPPING_FEE_STANDARD,  // 0đ (miễn phí)
+    'express'  => SHIPPING_FEE_EXPRESS,   // 60.000đ
+];
+$shippingFee = $shippingFees[$shippingMethod] ?? SHIPPING_FEE_STANDARD;
 
 // Lấy thông tin user
 $stmtUser = $pdo->prepare('SELECT * FROM users WHERE id = ?');
@@ -63,9 +66,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $streetAddress = trim($_POST['street_address'] ?? ''); // số nhà, tên đường
     // Ghép địa chỉ đầy đủ
     $address = implode(', ', array_filter([$streetAddress, $ward, $city]));
-    $paymentMethod = $_POST['payment_method'] ?? 'cod';
-    $voucherCode = trim($_POST['voucher_code'] ?? '');
-    $note = trim($_POST['note'] ?? '');
+    $paymentMethod  = $_POST['payment_method']  ?? 'cod';
+    $shippingMethod = $_POST['shipping_method']  ?? 'standard';
+    $shippingFee    = $shippingFees[$shippingMethod] ?? SHIPPING_FEE_STANDARD;
+    $voucherCode    = trim($_POST['voucher_code'] ?? '');
+    $note           = trim($_POST['note']         ?? '');
 
     // Validate
     if (empty($fullName))
@@ -269,6 +274,33 @@ include dirname(__DIR__) . '/includes/header.php';
                         </div>
                     </div>
                     
+                    <!-- Phương thức vận chuyển -->
+                    <div class="bg-white rounded-3 shadow-sm p-4 mb-4">
+                        <h5 class="fw-bold mb-3"><i class="fas fa-truck me-2" style="color:var(--primary);"></i>Phương thức vận chuyển</h5>
+                        <div class="d-flex flex-column gap-2">
+                            <label class="d-flex align-items-center gap-3 p-3 rounded-3 border shipping-option <?php echo ($shippingMethod === 'standard') ? 'border-primary' : ''; ?>" style="cursor:pointer;">
+                                <input type="radio" name="shipping_method" value="standard" class="form-check-input shipping-radio"
+                                       <?php echo ($shippingMethod === 'standard') ? 'checked' : ''; ?>>
+                                <i class="fas fa-box fa-lg" style="color:#6c757d;"></i>
+                                <div class="flex-grow-1">
+                                    <strong>Giao hàng tiêu chuẩn</strong>
+                                    <br><small class="text-muted">Giao trong 3–5 ngày làm việc</small>
+                                </div>
+                                <span class="fw-bold text-success">Miễn phí</span>
+                            </label>
+                            <label class="d-flex align-items-center gap-3 p-3 rounded-3 border shipping-option <?php echo ($shippingMethod === 'express') ? 'border-primary' : ''; ?>" style="cursor:pointer;">
+                                <input type="radio" name="shipping_method" value="express" class="form-check-input shipping-radio"
+                                       <?php echo ($shippingMethod === 'express') ? 'checked' : ''; ?>>
+                                <i class="fas fa-shipping-fast fa-lg" style="color:#f36811;"></i>
+                                <div class="flex-grow-1">
+                                    <strong>Giao hàng nhanh</strong>
+                                    <br><small class="text-muted">Giao trong 1–2 ngày làm việc</small>
+                                </div>
+                                <span class="fw-bold" style="color:#f36811;"><?php echo formatPrice(SHIPPING_FEE_EXPRESS); ?></span>
+                            </label>
+                        </div>
+                    </div>
+
                     <!-- Phương thức thanh toán -->
                     <div class="bg-white rounded-3 shadow-sm p-4">
                         <h5 class="fw-bold mb-3"><i class="fas fa-wallet me-2" style="color:var(--primary);"></i>Phương thức thanh toán</h5>
@@ -339,7 +371,7 @@ include dirname(__DIR__) . '/includes/header.php';
                         </div>
                         <div class="d-flex justify-content-between mb-2" style="font-size:14px;">
                             <span>Phí vận chuyển:</span>
-                            <span><?php echo $shippingFee > 0 ? formatPrice($shippingFee) : '<span class="text-success">Miễn phí</span>'; ?></span>
+                            <span id="shipping-fee-display"><?php echo $shippingFee > 0 ? formatPrice($shippingFee) : '<span class="text-success">Miễn phí</span>'; ?></span>
                         </div>
                         <?php if ($voucherDiscount > 0): ?>
                         <div class="d-flex justify-content-between mb-2" style="font-size:14px;color:var(--success);">
@@ -350,7 +382,7 @@ include dirname(__DIR__) . '/includes/header.php';
                         <hr>
                         <div class="d-flex justify-content-between mb-4">
                             <strong style="font-size:16px;">Tổng cộng:</strong>
-                            <strong style="color:var(--primary);font-size:22px;"><?php echo formatPrice($subtotal + $shippingFee - $voucherDiscount); ?></strong>
+                            <strong id="total-display" style="color:var(--primary);font-size:22px;"><?php echo formatPrice($subtotal + $shippingFee - $voucherDiscount); ?></strong>
                         </div>
                         
                         <button type="submit" class="btn-wink w-100 justify-content-center" style="padding:14px;">
@@ -369,6 +401,35 @@ document.addEventListener('DOMContentLoaded', function() {
         defaultProvince: <?php echo json_encode($_POST['city'] ?? $user['province'] ?? $user['city'] ?? ''); ?>,
         defaultWard:     <?php echo json_encode($_POST['ward'] ?? ''); ?>
     });
+
+    // Cập nhật phí ship + tổng khi đổi phương thức vận chuyển
+    const subtotal       = <?php echo (int)$subtotal; ?>;
+    const voucherDiscount= <?php echo (int)$voucherDiscount; ?>;
+    const feeStandard    = <?php echo SHIPPING_FEE_STANDARD; ?>;
+    const feeExpress     = <?php echo SHIPPING_FEE_EXPRESS; ?>;
+
+    function formatVND(amount) {
+        return amount.toLocaleString('vi-VN') + 'đ';
+    }
+
+    function updateShippingUI() {
+        const selected = document.querySelector('input[name="shipping_method"]:checked');
+        if (!selected) return;
+
+        const fee   = selected.value === 'express' ? feeExpress : feeStandard;
+        const total = Math.max(0, subtotal + fee - voucherDiscount);
+
+        document.getElementById('shipping-fee-display').innerHTML =
+            fee > 0 ? '<strong>' + formatVND(fee) + '</strong>' : '<span class="text-success">Miễn phí</span>';
+        document.getElementById('total-display').textContent = formatVND(total);
+
+        // Highlight option được chọn
+        document.querySelectorAll('.shipping-option').forEach(el => el.classList.remove('border-primary', 'bg-light'));
+        selected.closest('.shipping-option').classList.add('border-primary', 'bg-light');
+    }
+
+    document.querySelectorAll('.shipping-radio').forEach(r => r.addEventListener('change', updateShippingUI));
+    updateShippingUI(); // chạy lần đầu
 });
 </script>
 
