@@ -46,6 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $old['sale_price']  = !empty($_POST['sale_price']) ? (int)$_POST['sale_price'] : null;
     $old['category_id'] = (int)($_POST['category_id'] ?? 0);
     $old['brand_id']    = !empty($_POST['brand_id']) ? (int)$_POST['brand_id'] : null;
+    $old['style']       = in_array($_POST['style'] ?? '', ['low_top','mid_top','high_top']) ? $_POST['style'] : 'low_top';
     $old['is_featured'] = isset($_POST['is_featured']) ? 1 : 0;
     $old['is_new']      = isset($_POST['is_new']) ? 1 : 0;
     $old['status']      = $_POST['status'] ?? 'active';
@@ -105,12 +106,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $imagesJson = !empty($otherImages) ? json_encode(array_values($otherImages), JSON_UNESCAPED_UNICODE) : null;
         
         $stmt = $pdo->prepare("
-            UPDATE products SET name=?, slug=?, thumbnail=?, images=?, description=?, price=?, sale_price=?, category_id=?, brand_id=?, is_featured=?, is_new=?, status=?
+            UPDATE products SET name=?, slug=?, thumbnail=?, images=?, description=?, price=?, sale_price=?, category_id=?, brand_id=?, style=?, is_featured=?, is_new=?, status=?
             WHERE id=?
         ");
         $stmt->execute([
             $old['name'], $slug, $thumbnail, $imagesJson, $old['description'], $old['price'], $old['sale_price'],
-            $old['category_id'], $old['brand_id'], $old['is_featured'], $old['is_new'], $old['status'], $id
+            $old['category_id'], $old['brand_id'], $old['style'], $old['is_featured'], $old['is_new'], $old['status'], $id
         ]);
         
         setFlashMessage('success', 'Cập nhật sản phẩm thành công!');
@@ -216,6 +217,14 @@ include dirname(__DIR__) . '/includes/admin_header.php';
                                     <?php foreach ($brands as $b): ?>
                                         <option value="<?php echo $b['id']; ?>" <?php echo $old['brand_id'] == $b['id'] ? 'selected' : ''; ?>><?php echo e($b['name']); ?></option>
                                     <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Kiểu dáng cổ</label>
+                                <select name="style" class="form-control">
+                                    <option value="low_top"  <?php echo $old['style'] === 'low_top'  ? 'selected' : ''; ?>>👟 Cổ thấp (Low-top)</option>
+                                    <option value="mid_top"  <?php echo $old['style'] === 'mid_top'  ? 'selected' : ''; ?>>👟 Cổ lửng (Mid-top)</option>
+                                    <option value="high_top" <?php echo $old['style'] === 'high_top' ? 'selected' : ''; ?>>👟 Cổ cao (High-top)</option>
                                 </select>
                             </div>
                             <div class="form-group">

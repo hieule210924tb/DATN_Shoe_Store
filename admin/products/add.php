@@ -10,7 +10,8 @@ $pdo = getDBConnection();
 $errors = [];
 $old = [
     'name' => '', 'description' => '', 'price' => '', 'sale_price' => '',
-    'category_id' => '', 'brand_id' => '', 'is_featured' => 0, 'is_new' => 1, 'status' => 'active'
+    'category_id' => '', 'brand_id' => '', 'style' => 'low_top',
+    'is_featured' => 0, 'is_new' => 1, 'status' => 'active'
 ];
 
 $categories = $pdo->query("SELECT id, name FROM categories WHERE status = 'active' ORDER BY name")->fetchAll();
@@ -24,6 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'sale_price'  => !empty($_POST['sale_price']) ? (int)$_POST['sale_price'] : null,
         'category_id' => (int)($_POST['category_id'] ?? 0),
         'brand_id'    => !empty($_POST['brand_id']) ? (int)$_POST['brand_id'] : null,
+        'style'       => in_array($_POST['style'] ?? '', ['low_top','mid_top','high_top']) ? $_POST['style'] : 'low_top',
         'is_featured' => isset($_POST['is_featured']) ? 1 : 0,
         'is_new'      => isset($_POST['is_new']) ? 1 : 0,
         'status'      => $_POST['status'] ?? 'active',
@@ -74,12 +76,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $imagesJson = !empty($otherImages) ? json_encode($otherImages, JSON_UNESCAPED_UNICODE) : null;
         
         $stmt = $pdo->prepare("
-            INSERT INTO products (name, slug, thumbnail, images, description, price, sale_price, category_id, brand_id, is_featured, is_new, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO products (name, slug, thumbnail, images, description, price, sale_price, category_id, brand_id, style, is_featured, is_new, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         $stmt->execute([
             $old['name'], $slug, $thumbnail, $imagesJson, $old['description'], $old['price'], $old['sale_price'],
-            $old['category_id'], $old['brand_id'], $old['is_featured'], $old['is_new'], $old['status']
+            $old['category_id'], $old['brand_id'], $old['style'], $old['is_featured'], $old['is_new'], $old['status']
         ]);
         $productId = $pdo->lastInsertId();
         
@@ -158,6 +160,14 @@ include dirname(__DIR__) . '/includes/admin_header.php';
                                     <?php foreach ($brands as $brand): ?>
                                         <option value="<?php echo $brand['id']; ?>" <?php echo $old['brand_id'] == $brand['id'] ? 'selected' : ''; ?>><?php echo e($brand['name']); ?></option>
                                     <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Kiểu dáng cổ</label>
+                                <select name="style" class="form-control">
+                                    <option value="low_top"  <?php echo $old['style'] === 'low_top'  ? 'selected' : ''; ?>>👟 Cổ thấp (Low-top)</option>
+                                    <option value="mid_top"  <?php echo $old['style'] === 'mid_top'  ? 'selected' : ''; ?>>👟 Cổ lửng (Mid-top)</option>
+                                    <option value="high_top" <?php echo $old['style'] === 'high_top' ? 'selected' : ''; ?>>👟 Cổ cao (High-top)</option>
                                 </select>
                             </div>
                             <div class="form-group">

@@ -9,6 +9,7 @@ $pdo = getDBConnection();
 $search = $_GET['search'] ?? '';
 $statusFilter = $_GET['status'] ?? '';
 $categoryFilter = (int)($_GET['category_id'] ?? 0);
+$styleFilter = $_GET['style'] ?? '';
 $page = max(1, (int)($_GET['page'] ?? 1));
 $perPage = 15;
 
@@ -26,6 +27,10 @@ if (!empty($statusFilter)) {
 if ($categoryFilter > 0) {
     $where[] = "p.category_id = ?";
     $params[] = $categoryFilter;
+}
+if (!empty($styleFilter)) {
+    $where[] = "p.style = ?";
+    $params[] = $styleFilter;
 }
 
 $whereClause = implode(' AND ', $where);
@@ -87,8 +92,14 @@ $categories = $pdo->query("SELECT id, name FROM categories ORDER BY name")->fetc
                         <option value="active" <?php echo $statusFilter === 'active' ? 'selected' : ''; ?>>Đang bán</option>
                         <option value="inactive" <?php echo $statusFilter === 'inactive' ? 'selected' : ''; ?>>Ẩn</option>
                     </select>
+                    <select name="style" class="form-control form-control-sm mr-2" style="max-width:160px;">
+                        <option value="">-- Kiểu dáng cổ --</option>
+                        <option value="low_top"  <?php echo $styleFilter === 'low_top'  ? 'selected' : ''; ?>>Cổ thấp (Low-top)</option>
+                        <option value="mid_top"  <?php echo $styleFilter === 'mid_top'  ? 'selected' : ''; ?>>Cổ lửng (Mid-top)</option>
+                        <option value="high_top" <?php echo $styleFilter === 'high_top' ? 'selected' : ''; ?>>Cổ cao (High-top)</option>
+                    </select>
                     <button class="btn btn-primary btn-sm"><i class="fas fa-search"></i> Lọc</button>
-                    <?php if (!empty($search) || !empty($statusFilter) || $categoryFilter > 0): ?>
+                    <?php if (!empty($search) || !empty($statusFilter) || $categoryFilter > 0 || !empty($styleFilter)): ?>
                         <a href="<?php echo url('admin/products/list.php'); ?>" class="btn btn-secondary btn-sm ml-1">Xóa lọc</a>
                     <?php endif; ?>
                 </form>
@@ -102,6 +113,7 @@ $categories = $pdo->query("SELECT id, name FROM categories ORDER BY name")->fetc
                                 <th width="60">Ảnh</th>
                                 <th>Tên sản phẩm</th>
                                 <th>Danh mục</th>
+                                <th>Kiểu cổ</th>
                                 <th>Giá gốc</th>
                                 <th>Giá KM</th>
                                 <th>Tồn kho</th>
@@ -125,6 +137,16 @@ $categories = $pdo->query("SELECT id, name FROM categories ORDER BY name")->fetc
                                         <?php if ($p['is_new']): ?><span class="badge badge-info ml-1">Mới</span><?php endif; ?>
                                     </td>
                                     <td><?php echo e($p['category_name'] ?? '-'); ?></td>
+                                    <td>
+                                        <?php
+                                        $styleLabels = ['low_top' => 'Cổ thấp', 'mid_top' => 'Cổ lửng', 'high_top' => 'Cổ cao'];
+                                        $styleColors = ['low_top' => 'badge-light border', 'mid_top' => 'badge-info', 'high_top' => 'badge-warning'];
+                                        $s = $p['style'] ?? 'low_top';
+                                        ?>
+                                        <span class="badge <?php echo $styleColors[$s] ?? 'badge-light'; ?>">
+                                            <?php echo $styleLabels[$s] ?? $s; ?>
+                                        </span>
+                                    </td>
                                     <td><?php echo formatPrice($p['price']); ?></td>
                                     <td><?php echo $p['sale_price'] ? formatPrice($p['sale_price']) : '-'; ?></td>
                                     <td>

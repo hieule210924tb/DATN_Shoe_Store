@@ -133,6 +133,22 @@ include dirname(__DIR__) . '/includes/header.php';
                             <span><i class="fas fa-tag me-1"></i> <?php echo e($product['brand_name']); ?></span>
                         <?php endif; ?>
                         <span><i class="fas fa-folder me-1"></i> <?php echo e($product['category_name']); ?></span>
+                        <?php
+                        $styleMap = [
+                            'low_top' => ['label' => 'Cổ thấp', 'icon' => 'fas fa-shoe-prints', 'color' => '#4caf50'],
+                            'mid_top' => ['label' => 'Cổ lửng', 'icon' => 'fas fa-shoe-prints', 'color' => '#f36811'],
+                            'high_top' => ['label' => 'Cổ cao', 'icon' => 'fas fa-shoe-prints', 'color' => '#9c27b0'],
+                        ];
+                        $styleKey = $product['style'] ?? 'low_top';
+                        $styleInfo = $styleMap[$styleKey] ?? $styleMap['low_top'];
+                        ?>
+                        <span>
+                            <i class="<?php echo $styleInfo['icon']; ?> me-1" style="color:<?php echo $styleInfo['color']; ?>;"></i>
+                            Kiểu dáng:
+                            <strong style="color:<?php echo $styleInfo['color']; ?>;">
+                                <?php echo $styleInfo['label']; ?>
+                            </strong>
+                        </span>
                         <?php if ($product['total_reviews'] > 0): ?>
                             <span class="d-flex align-items-center gap-1">
                                 <i class="fas fa-star" style="color:#ffc107;"></i>

@@ -71,6 +71,7 @@ CREATE TABLE products (
     brand_id INT DEFAULT NULL,
     name VARCHAR(255) NOT NULL,
     slug VARCHAR(255) NOT NULL,
+    style ENUM('low_top', 'high_top', 'mid_top') NOT NULL DEFAULT 'low_top' COMMENT 'Kiểu dáng: cổ thấp, cổ cao, cổ lửng',
     thumbnail VARCHAR(255) DEFAULT NULL COMMENT 'Ảnh đại diện chính',
     images TEXT DEFAULT NULL COMMENT 'JSON mảng đường dẫn ảnh phụ',
     description TEXT DEFAULT NULL,
