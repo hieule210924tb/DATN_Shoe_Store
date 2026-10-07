@@ -1,0 +1,12 @@
+# Thư mục chứa ảnh khách/admin gửi trong chat: chặn thực thi mọi script
+Options -Indexes -ExecCGI
+RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .phar
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+    php_flag engine off
+</IfModule>
+<FilesMatch "\.(php|phtml|php[0-9]?|phar)$">
+    Require all denied
+</FilesMatch>

@@ -2,6 +2,14 @@
 // sidebar admin
 $currentPage = basename($_SERVER['PHP_SELF']);
 $currentDir = basename(dirname($_SERVER['PHP_SELF']));
+
+// Số tin nhắn chat chưa đọc (hiển thị badge)
+$chatUnreadTotal = 0;
+try {
+    $chatUnreadTotal = (int)getDBConnection()->query("SELECT COALESCE(SUM(unread_by_admin), 0) FROM chat_conversations")->fetchColumn();
+} catch (Exception $ex) {
+    $chatUnreadTotal = 0;
+}
 ?>
 <!-- Main Sidebar -->
 <aside class="main-sidebar sidebar-dark-primary elevation-4">
@@ -105,7 +113,7 @@ $currentDir = basename(dirname($_SERVER['PHP_SELF']));
                 <li class="nav-item">
                     <a href="<?php echo url('admin/chat/list.php'); ?>" class="nav-link <?php echo $currentDir === 'chat' ? 'active' : ''; ?>">
                         <i class="nav-icon fas fa-comments"></i>
-                        <p>Chat</p>
+                        <p>Chat <span id="sidebarChatBadge" class="badge badge-danger right" style="<?php echo $chatUnreadTotal > 0 ? '' : 'display:none'; ?>"><?php echo $chatUnreadTotal > 99 ? '99+' : $chatUnreadTotal; ?></span></p>
                     </a>
                 </li>
                 

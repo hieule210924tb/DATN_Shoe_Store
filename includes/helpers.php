@@ -464,6 +464,59 @@ function getWishlistCount() {
     return (int) $stmt->fetchColumn();
 }
 
+/**
+ * Lấy số tin nhắn chat chưa đọc của người dùng hiện tại (tin từ admin)
+ * @return int
+ */
+function getChatUnreadCount() {
+    if (!isLoggedIn()) return 0;
+    
+    $pdo = getDBConnection();
+    $stmt = $pdo->prepare("SELECT COALESCE(unread_by_user, 0) FROM chat_conversations WHERE user_id = ?");
+    $stmt->execute([getCurrentUserId()]);
+    return (int) $stmt->fetchColumn();
+}
+
+// =====================================================
+// HÀM CHAT
+// =====================================================
+
+/**
+ * Xử lý ảnh đính kèm trong tin nhắn chat ($_FILES['image'])
+ * Không chọn ảnh vẫn trả về success với filename = null
+ * @param string $field Tên input file
+ * @return array ['success' => bool, 'filename' => string|null, 'error' => string]
+ */
+function processChatImageUpload($field = 'image') {
+    if (empty($_FILES[$field]) || $_FILES[$field]['error'] === UPLOAD_ERR_NO_FILE) {
+        return ['success' => true, 'filename' => null, 'error' => ''];
+    }
+
+    $upload = uploadImage($_FILES[$field], CHAT_UPLOAD_PATH);
+    return [
+        'success'  => $upload['success'],
+        'filename' => $upload['success'] ? $upload['filename'] : null,
+        'error'    => $upload['error'],
+    ];
+}
+
+/**
+ * URL đầy đủ của ảnh chat (null nếu tin nhắn không có ảnh)
+ * @param string|null $filename
+ * @return string|null
+ */
+function chatImageUrl($filename) {
+    return !empty($filename) ? CHAT_UPLOAD_URL . '/' . $filename : null;
+}
+
+/**
+ * Nội dung hiển thị tóm tắt của tin nhắn (dùng cho last_message)
+ */
+function chatPreviewText($message, $hasImage) {
+    if ($message !== '') return $message;
+    return $hasImage ? '[Hình ảnh]' : '';
+}
+
 // =====================================================
 // HÀM PHÂN TRANG
 // =====================================================

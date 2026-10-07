@@ -22,11 +22,13 @@ define('UPLOAD_URL', BASE_URL . '/uploads');
 define('PRODUCT_UPLOAD_PATH', UPLOAD_PATH . '/products');
 define('REVIEW_UPLOAD_PATH', UPLOAD_PATH . '/reviews');
 define('AVATAR_UPLOAD_PATH', UPLOAD_PATH . '/avatars');
+define('CHAT_UPLOAD_PATH', UPLOAD_PATH . '/chat');
 
 // URL upload cụ thể
 define('PRODUCT_UPLOAD_URL', UPLOAD_URL . '/products');
 define('REVIEW_UPLOAD_URL', UPLOAD_URL . '/reviews');
 define('AVATAR_UPLOAD_URL', UPLOAD_URL . '/avatars');
+define('CHAT_UPLOAD_URL', UPLOAD_URL . '/chat');
 
 // Cấu hình upload
 define('MAX_FILE_SIZE', 5 * 1024 * 1024); // 5MB

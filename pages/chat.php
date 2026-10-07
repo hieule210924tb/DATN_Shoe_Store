@@ -77,7 +77,8 @@ include dirname(__DIR__) . '/includes/header.php';
                                                 <i class="fas fa-headset"></i>
                                             </div>
                                             <div class="chat-msg-bubble chat-msg-bubble-admin">
-                                                <?php echo nl2br(e($msg['message'])); ?>
+                                                <?php if (!empty($msg['image'])): ?><img src="<?php echo e(chatImageUrl($msg['image'])); ?>" class="chat-msg-img" alt="Ảnh" loading="lazy" onclick="window.open(this.src, '_blank')"><?php endif; ?>
+                                                <?php if ($msg['message'] !== ''): ?><div><?php echo nl2br(e($msg['message'])); ?></div><?php endif; ?>
                                                 <div class="chat-msg-time"><?php echo formatDate($msg['created_at'], 'H:i'); ?></div>
                                             </div>
                                         </div>
@@ -87,7 +88,8 @@ include dirname(__DIR__) . '/includes/header.php';
                                     <div class="chat-message chat-message-user mb-3">
                                         <div class="d-flex gap-2 justify-content-end">
                                             <div class="chat-msg-bubble chat-msg-bubble-user">
-                                                <?php echo nl2br(e($msg['message'])); ?>
+                                                <?php if (!empty($msg['image'])): ?><img src="<?php echo e(chatImageUrl($msg['image'])); ?>" class="chat-msg-img" alt="Ảnh" loading="lazy" onclick="window.open(this.src, '_blank')"><?php endif; ?>
+                                                <?php if ($msg['message'] !== ''): ?><div><?php echo nl2br(e($msg['message'])); ?></div><?php endif; ?>
                                                 <div class="chat-msg-time"><?php echo formatDate($msg['created_at'], 'H:i'); ?></div>
                                             </div>
                                             <img src="<?php echo getCurrentUserAvatar(); ?>" 
@@ -101,9 +103,17 @@ include dirname(__DIR__) . '/includes/header.php';
                     
                     <!-- Chat Input -->
                     <div class="chat-input p-3 border-top">
-                        <form id="chatForm" class="d-flex gap-2">
+                        <div id="chatPreview" class="chat-preview mb-2" style="display:none;">
+                            <img id="chatPreviewImg" src="" alt="Ảnh xem trước">
+                            <button type="button" id="chatPreviewRemove" aria-label="Bỏ ảnh"><i class="fas fa-times"></i></button>
+                        </div>
+                        <form id="chatForm" class="d-flex gap-2 align-items-center">
+                            <input type="file" id="chatFile" accept="image/jpeg,image/png,image/gif,image/webp" hidden>
+                            <button type="button" id="chatAttach" class="btn btn-light chat-attach" title="Gửi ảnh">
+                                <i class="fas fa-image"></i>
+                            </button>
                             <input type="text" id="messageInput" class="form-control" 
-                                   placeholder="Nhập tin nhắn..." autocomplete="off" required>
+                                   placeholder="Nhập tin nhắn..." autocomplete="off" maxlength="2000">
                             <button type="submit" class="btn-wink">
                                 <i class="fas fa-paper-plane"></i>
                             </button>
@@ -181,7 +191,34 @@ include dirname(__DIR__) . '/includes/header.php';
     font-size: 14px;
 }
 
-.chat-input input {
+.chat-msg-img {
+    display: block;
+    max-width: 100%;
+    max-height: 260px;
+    border-radius: 12px;
+    cursor: zoom-in;
+    margin-bottom: 4px;
+}
+
+.chat-attach {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    padding: 0;
+    flex-shrink: 0;
+    color: #764ba2;
+    font-size: 18px;
+}
+
+.chat-preview { position: relative; display: inline-block; }
+.chat-preview img { height: 70px; max-width: 140px; object-fit: cover; border-radius: 10px; border: 1px solid #eee; }
+.chat-preview button {
+    position: absolute; top: -7px; right: -7px;
+    width: 22px; height: 22px; border-radius: 50%; border: none;
+    background: #333; color: #fff; font-size: 11px; cursor: pointer;
+}
+
+.chat-input input[type="text"] {
     border-radius: 25px;
     padding: 12px 20px;
 }
@@ -205,12 +242,14 @@ document.getElementById('chatForm').addEventListener('submit', function(e) {
     const messageInput = document.getElementById('messageInput');
     const message = messageInput.value.trim();
     
-    if (!message) return;
+    if ((!message && !selectedImage) || sending) return;
     
     const formData = new FormData();
     formData.append('action', 'send');
     formData.append('conversation_id', conversationId);
     formData.append('message', message);
+    if (selectedImage) formData.append('image', selectedImage);
+    sending = true;
     
     fetch(BASE_URL + '/ajax/chat_actions.php', {
         method: 'POST',
@@ -220,6 +259,7 @@ document.getElementById('chatForm').addEventListener('submit', function(e) {
     .then(data => {
         if (data.success) {
             messageInput.value = '';
+            setImage(null);
             loadMessages();
         } else {
             showToast('error', data.message || 'Không thể gửi tin nhắn.');
@@ -228,7 +268,8 @@ document.getElementById('chatForm').addEventListener('submit', function(e) {
     .catch(error => {
         console.error('Lỗi:', error);
         showToast('error', 'Có lỗi xảy ra. Vui lòng thử lại.');
-    });
+    })
+    .finally(() => { sending = false; });
 });
 
 function loadMessages() {
@@ -256,7 +297,7 @@ function loadMessages() {
                                             <i class="fas fa-headset"></i>
                                         </div>
                                         <div class="chat-msg-bubble chat-msg-bubble-admin">
-                                            ${escapeHtml(msg.message).replace(/\n/g, '<br>')}
+                                            ${bubbleContent(msg)}
                                             <div class="chat-msg-time">${msg.time}</div>
                                         </div>
                                     </div>
@@ -267,7 +308,7 @@ function loadMessages() {
                                 <div class="chat-message chat-message-user mb-3">
                                     <div class="d-flex gap-2 justify-content-end">
                                         <div class="chat-msg-bubble chat-msg-bubble-user">
-                                            ${escapeHtml(msg.message).replace(/\n/g, '<br>')}
+                                            ${bubbleContent(msg)}
                                             <div class="chat-msg-time">${msg.time}</div>
                                         </div>
                                         <img src="${data.user_avatar}" 
@@ -284,6 +325,56 @@ function loadMessages() {
         })
         .catch(error => console.error('Lỗi:', error));
 }
+
+let selectedImage = null;
+let sending = false;
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+
+function bubbleContent(msg) {
+    let html = '';
+    if (msg.image) {
+        html += `<img src="${escapeHtml(msg.image)}" class="chat-msg-img" alt="Ảnh" loading="lazy" onclick="window.open(this.src, '_blank')">`;
+    }
+    if (msg.message) {
+        html += `<div>${escapeHtml(msg.message).replace(/\n/g, '<br>')}</div>`;
+    }
+    return html;
+}
+
+function setImage(file) {
+    const preview = document.getElementById('chatPreview');
+    const img = document.getElementById('chatPreviewImg');
+    if (img.src && img.src.startsWith('blob:')) URL.revokeObjectURL(img.src);
+
+    selectedImage = file || null;
+    if (file) {
+        img.src = URL.createObjectURL(file);
+        preview.style.display = 'inline-block';
+    } else {
+        img.removeAttribute('src');
+        preview.style.display = 'none';
+        document.getElementById('chatFile').value = '';
+    }
+}
+
+document.getElementById('chatAttach').addEventListener('click', () => document.getElementById('chatFile').click());
+document.getElementById('chatPreviewRemove').addEventListener('click', () => setImage(null));
+document.getElementById('chatFile').addEventListener('change', function() {
+    const file = this.files[0];
+    if (!file) return;
+    if (!ALLOWED_TYPES.includes(file.type)) {
+        showToast('error', 'Chỉ hỗ trợ ảnh JPG, PNG, GIF hoặc WebP.');
+        setImage(null);
+        return;
+    }
+    if (file.size > MAX_IMAGE_SIZE) {
+        showToast('error', 'Ảnh quá lớn. Tối đa 5MB.');
+        setImage(null);
+        return;
+    }
+    setImage(file);
+});
 
 function escapeHtml(text) {
     const div = document.createElement('div');

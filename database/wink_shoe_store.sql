@@ -304,6 +304,7 @@ CREATE TABLE chat_messages (
     sender_id INT NOT NULL,
     sender_role ENUM('user', 'admin') NOT NULL,
     message TEXT NOT NULL,
+    image VARCHAR(255) DEFAULT NULL COMMENT 'Tên file ảnh đính kèm (uploads/chat)',
     is_read TINYINT(1) NOT NULL DEFAULT 0,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_conversation (conversation_id),

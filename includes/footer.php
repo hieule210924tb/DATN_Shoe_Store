@@ -115,9 +115,17 @@
             </div>
             
             <div class="chat-widget-input">
-                <form id="chatWidgetForm" class="d-flex gap-2">
+                <div class="chat-widget-preview" id="chatWidgetPreview" style="display: none;">
+                    <img id="chatWidgetPreviewImg" src="" alt="Ảnh xem trước">
+                    <button type="button" id="chatWidgetPreviewRemove" aria-label="Bỏ ảnh"><i class="fas fa-times"></i></button>
+                </div>
+                <form id="chatWidgetForm" class="d-flex gap-2 align-items-center">
+                    <input type="file" id="chatWidgetFile" accept="image/jpeg,image/png,image/gif,image/webp" hidden>
+                    <button type="button" class="chat-widget-attach" id="chatWidgetAttach" title="Gửi ảnh">
+                        <i class="fas fa-image"></i>
+                    </button>
                     <input type="text" id="chatWidgetInput" class="form-control form-control-sm" 
-                           placeholder="Nhập tin nhắn..." autocomplete="off">
+                           placeholder="Nhập tin nhắn..." autocomplete="off" maxlength="2000">
                     <button type="submit" class="btn-wink btn-wink-sm">
                         <i class="fas fa-paper-plane"></i>
                     </button>
