@@ -80,6 +80,41 @@ include dirname(__DIR__) . '/includes/header.php';
                             </div>
                         </div>
                     </div>
+                    <hr class="my-3">
+                    <h6 class="fw-bold mb-3 text-secondary" style="font-size:14px;"><i class="fas fa-history me-2"></i>Mốc thời gian xử lý đơn hàng</h6>
+                    <div class="row g-2">
+                        <div class="col-sm-6 col-md-3">
+                            <div class="p-2 rounded border bg-light text-center h-100">
+                                <small class="text-muted d-block mb-1" style="font-size:12px;"><i class="fas fa-clock text-warning me-1"></i>Đặt hàng lúc</small>
+                                <div class="fw-bold" style="font-size:13px;"><?php echo formatDate($order['created_at'], 'd/m/Y H:i'); ?></div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-3">
+                            <div class="p-2 rounded border <?php echo !empty($order['confirmed_at']) ? 'bg-light border-primary' : 'bg-light text-muted'; ?> text-center h-100">
+                                <small class="text-muted d-block mb-1" style="font-size:12px;"><i class="fas fa-check-circle text-primary me-1"></i>Đã xác nhận lúc</small>
+                                <div class="fw-bold" style="font-size:13px;"><?php echo !empty($order['confirmed_at']) ? formatDate($order['confirmed_at'], 'd/m/Y H:i') : '—'; ?></div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-3">
+                            <div class="p-2 rounded border <?php echo !empty($order['shipping_at']) ? 'bg-light border-info' : 'bg-light text-muted'; ?> text-center h-100">
+                                <small class="text-muted d-block mb-1" style="font-size:12px;"><i class="fas fa-truck text-info me-1"></i>Đang giao lúc</small>
+                                <div class="fw-bold" style="font-size:13px;"><?php echo !empty($order['shipping_at']) ? formatDate($order['shipping_at'], 'd/m/Y H:i') : '—'; ?></div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-3">
+                            <?php if ($order['status'] === 'cancelled'): ?>
+                            <div class="p-2 rounded border bg-light border-danger text-center h-100">
+                                <small class="text-muted d-block mb-1" style="font-size:12px;"><i class="fas fa-times-circle text-danger me-1"></i>Đã hủy lúc</small>
+                                <div class="fw-bold text-danger" style="font-size:13px;"><?php echo !empty($order['cancelled_at']) ? formatDate($order['cancelled_at'], 'd/m/Y H:i') : '—'; ?></div>
+                            </div>
+                            <?php else: ?>
+                            <div class="p-2 rounded border <?php echo !empty($order['delivered_at']) ? 'bg-light border-success' : 'bg-light text-muted'; ?> text-center h-100">
+                                <small class="text-muted d-block mb-1" style="font-size:12px;"><i class="fas fa-box-open text-success me-1"></i>Đã giao lúc</small>
+                                <div class="fw-bold <?php echo !empty($order['delivered_at']) ? 'text-success' : ''; ?>" style="font-size:13px;"><?php echo !empty($order['delivered_at']) ? formatDate($order['delivered_at'], 'd/m/Y H:i') : '—'; ?></div>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Shipping Info -->

@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         // Cập nhật trạng thái đơn hàng
-        $stmt = $pdo->prepare("UPDATE orders SET status = 'cancelled' WHERE id = ?");
+        $stmt = $pdo->prepare("UPDATE orders SET status = 'cancelled', cancelled_at = NOW(), updated_at = NOW() WHERE id = ?");
         $stmt->execute([$orderId]);
         
         echo json_encode([

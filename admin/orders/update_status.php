@@ -55,8 +55,19 @@ if ($status !== 'cancelled' && ($newIdx === false || $newIdx !== $currentIdx + 1
 $pdo->beginTransaction();
 
 try {
-    // Cập nhật trạng thái đơn
-    $upd = $pdo->prepare("UPDATE orders SET status = ?, updated_at = NOW() WHERE id = ?");
+    // Cập nhật trạng thái đơn & thời gian mốc tương ứng
+    $timeCol = '';
+    if ($status === 'confirmed') {
+        $timeCol = ', confirmed_at = NOW()';
+    } elseif ($status === 'shipping') {
+        $timeCol = ', shipping_at = NOW()';
+    } elseif ($status === 'delivered') {
+        $timeCol = ', delivered_at = NOW()';
+    } elseif ($status === 'cancelled') {
+        $timeCol = ', cancelled_at = NOW()';
+    }
+
+    $upd = $pdo->prepare("UPDATE orders SET status = ?, updated_at = NOW() {$timeCol} WHERE id = ?");
     $upd->execute([$status, $orderId]);
 
     // Nếu giao thành công & COD → tự động đánh dấu đã thanh toán

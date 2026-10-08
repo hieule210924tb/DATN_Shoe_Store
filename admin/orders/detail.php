@@ -85,15 +85,15 @@ if ($order['status'] !== 'cancelled' && $order['status'] !== 'delivered') {
                 <div class="d-flex align-items-center flex-wrap" style="gap:0;">
                     <?php
                     $allStatuses = [
-                        'pending'   => ['label'=>'Chờ xác nhận', 'icon'=>'fa-clock'],
-                        'confirmed' => ['label'=>'Đã xác nhận',  'icon'=>'fa-check'],
-                        'shipping'  => ['label'=>'Đang giao',    'icon'=>'fa-truck'],
-                        'delivered' => ['label'=>'Đã giao',      'icon'=>'fa-check-circle'],
+                        'pending'   => ['label'=>'Chờ xác nhận', 'icon'=>'fa-clock',        'time'=>$order['created_at']],
+                        'confirmed' => ['label'=>'Đã xác nhận',  'icon'=>'fa-check',        'time'=>$order['confirmed_at']],
+                        'shipping'  => ['label'=>'Đang giao',    'icon'=>'fa-truck',        'time'=>$order['shipping_at']],
+                        'delivered' => ['label'=>'Đã giao',      'icon'=>'fa-check-circle', 'time'=>$order['delivered_at']],
                     ];
                     if ($order['status'] === 'cancelled') {
                         $allStatuses = [
-                            'pending'   => ['label'=>'Chờ xác nhận', 'icon'=>'fa-clock'],
-                            'cancelled' => ['label'=>'Đã huỷ',       'icon'=>'fa-times-circle'],
+                            'pending'   => ['label'=>'Chờ xác nhận', 'icon'=>'fa-clock',        'time'=>$order['created_at']],
+                            'cancelled' => ['label'=>'Đã huỷ',       'icon'=>'fa-times-circle', 'time'=>$order['cancelled_at']],
                         ];
                     }
                     $reached = true;
@@ -120,9 +120,14 @@ if ($order['status'] !== 'cancelled' && $order['status'] !== 'delivered') {
                                 <i class="fas <?php echo $sVal['icon']; ?>"></i>
                             </div>
                             <small style="font-size:11px;font-weight:<?php echo $isActive?'700':'400'; ?>;
-                                          color:<?php echo $isActive?'#f36811':($isPast?'#28a745':'#adb5bd'); ?>;">
+                                          color:<?php echo $isActive?'#f36811':($isPast?'#28a745':'#adb5bd'); ?>; display:block;">
                                 <?php echo $sVal['label']; ?>
                             </small>
+                            <?php if (!empty($sVal['time'])): ?>
+                            <small class="text-muted d-block" style="font-size:10px;margin-top:2px;">
+                                <?php echo formatDate($sVal['time'], 'd/m H:i'); ?>
+                            </small>
+                            <?php endif; ?>
                         </div>
                         <?php if ($sKey !== array_key_last($allStatuses)): ?>
                         <div style="flex:1;height:2px;min-width:30px;
