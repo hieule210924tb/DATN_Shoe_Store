@@ -122,10 +122,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Tạo đơn hàng
             $orderCode = generateOrderCode();
 
-            // VNPay/MoMo đã thanh toán online → xác nhận luôn
-            // COD → chờ xác nhận
-            $initialStatus        = in_array($paymentMethod, ['vnpay', 'momo']) ? 'confirmed' : 'pending';
-            $initialPaymentStatus = in_array($paymentMethod, ['vnpay', 'momo']) ? 'paid'      : 'unpaid';
+            // VNPay/MoMo → pending/unpaid cho đến khi gateway xác nhận
+            // COD → pending/unpaid, xác nhận thủ công
+            $initialStatus        = 'pending';
+            $initialPaymentStatus = 'unpaid';
 
             try {
                 $stmtOrder = $pdo->prepare("
@@ -197,14 +197,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $pdo->commit();
 
-            $successMsg = in_array($paymentMethod, ['vnpay', 'momo'])
-                ? "Đặt hàng thành công! Đơn hàng $orderCode đã được xác nhận (đã thanh toán online)."
-                : "Đặt hàng thành công! Mã đơn hàng: $orderCode. Chúng tôi sẽ xác nhận sớm nhất.";
-            setFlashMessage('success', $successMsg);
-            redirect(url('pages/order_detail.php?id=' . $orderId));
+            // Với VNPay/MoMo → chuyển tới cổng thanh toán
+            if ($paymentMethod === 'vnpay') {
+                redirect(url('payment/vnpay_create.php?order_id=' . $orderId));
+            } elseif ($paymentMethod === 'momo') {
+                redirect(url('payment/momo_create.php?order_id=' . $orderId));
+            } else {
+                setFlashMessage('success', "Đặt hàng thành công! Mã đơn hàng: $orderCode. Chúng tôi sẽ xác nhận sớm nhất.");
+                redirect(url('pages/order_detail.php?id=' . $orderId));
+            }
         } catch (Exception $ex) {
             $pdo->rollBack();
-            $errors['general'] = 'Có lỗi xảy ra. Vui lòng thử lại.';
+            $errors['general'] = 'Có lỗi xảy ra: ' . $ex->getMessage() . '. Vui lòng thử lại.';
         }
     }
 }
@@ -304,31 +308,55 @@ include dirname(__DIR__) . '/includes/header.php';
                     <!-- Phương thức thanh toán -->
                     <div class="bg-white rounded-3 shadow-sm p-4">
                         <h5 class="fw-bold mb-3"><i class="fas fa-wallet me-2" style="color:var(--primary);"></i>Phương thức thanh toán</h5>
-                        <div class="d-flex flex-column gap-2">
-                            <label class="d-flex align-items-center gap-3 p-3 rounded-3 border" style="cursor:pointer;">
-                                <input type="radio" name="payment_method" value="cod" checked class="form-check-input">
-                                <i class="fas fa-money-bill-wave fa-lg" style="color:#28a745;"></i>
+                        <div class="d-flex flex-column gap-2" id="payment-methods">
+
+                            <label class="payment-option d-flex align-items-center gap-3 p-3 rounded-3 border" style="cursor:pointer;" id="label-cod">
+                                <input type="radio" name="payment_method" value="cod" checked class="form-check-input" id="pm-cod">
+                                <div class="d-flex align-items-center justify-content-center rounded-2" style="width:40px;height:40px;background:#e8f5e9;flex-shrink:0;">
+                                    <i class="fas fa-money-bill-wave" style="color:#2e7d32;font-size:18px;"></i>
+                                </div>
                                 <div>
                                     <strong>Thanh toán khi nhận hàng (COD)</strong>
-                                    <br><small class="text-muted">Thanh toán bằng tiền mặt khi nhận hàng</small>
+                                    <br><small class="text-muted">Trả tiền mặt khi nhận hàng, an toàn và tiện lợi</small>
                                 </div>
                             </label>
-                            <label class="d-flex align-items-center gap-3 p-3 rounded-3 border" style="cursor:pointer;">
-                                <input type="radio" name="payment_method" value="vnpay" class="form-check-input">
-                                <i class="fas fa-credit-card fa-lg" style="color:#0066b3;"></i>
+
+                            <label class="payment-option d-flex align-items-center gap-3 p-3 rounded-3 border" style="cursor:pointer;" id="label-vnpay">
+                                <input type="radio" name="payment_method" value="vnpay" class="form-check-input" id="pm-vnpay">
+                                <div class="d-flex align-items-center justify-content-center rounded-2" style="width:40px;height:40px;background:#e3f2fd;flex-shrink:0;">
+                                    <svg width="28" height="18" viewBox="0 0 120 40" xmlns="http://www.w3.org/2000/svg">
+                                        <rect width="120" height="40" rx="6" fill="#0066b3"/>
+                                        <text x="10" y="28" font-family="Arial" font-weight="bold" font-size="20" fill="white">VNPay</text>
+                                    </svg>
+                                </div>
                                 <div>
                                     <strong>VNPay</strong>
-                                    <br><small class="text-muted">Thanh toán qua ví VNPay / ATM / Visa</small>
+                                    <br><small class="text-muted">Thanh toán qua VNPay, ATM, Visa / Mastercard, QR Code</small>
                                 </div>
+                                <span class="ms-auto badge" style="background:#0066b3;font-size:10px;">Nhanh</span>
                             </label>
-                            <label class="d-flex align-items-center gap-3 p-3 rounded-3 border" style="cursor:pointer;">
-                                <input type="radio" name="payment_method" value="momo" class="form-check-input">
-                                <i class="fas fa-mobile-alt fa-lg" style="color:#a50064;"></i>
+
+                            <label class="payment-option d-flex align-items-center gap-3 p-3 rounded-3 border" style="cursor:pointer;" id="label-momo">
+                                <input type="radio" name="payment_method" value="momo" class="form-check-input" id="pm-momo">
+                                <div class="d-flex align-items-center justify-content-center rounded-2" style="width:40px;height:40px;background:#fce4ec;flex-shrink:0;">
+                                    <svg width="28" height="28" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="50" cy="50" r="48" fill="#a50064"/>
+                                        <text x="50" y="65" text-anchor="middle" font-family="Arial" font-weight="bold" font-size="36" fill="white">M</text>
+                                    </svg>
+                                </div>
                                 <div>
-                                    <strong>MoMo</strong>
-                                    <br><small class="text-muted">Thanh toán qua ví điện tử MoMo</small>
+                                    <strong>Ví MoMo</strong>
+                                    <br><small class="text-muted">Thanh toán qua ứng dụng MoMo, QR Code</small>
                                 </div>
+                                <span class="ms-auto badge" style="background:#a50064;font-size:10px;">Phổ biến</span>
                             </label>
+
+                        </div>
+
+                        <!-- Thông báo khi chọn online -->
+                        <div id="online-payment-notice" class="alert alert-info mt-3 d-none" style="font-size:13px;">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Bạn sẽ được chuyển hướng đến trang thanh toán an toàn sau khi đặt hàng.
                         </div>
                     </div>
                 </div>
@@ -430,6 +458,43 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.querySelectorAll('.shipping-radio').forEach(r => r.addEventListener('change', updateShippingUI));
     updateShippingUI(); // chạy lần đầu
+
+    // ── Payment method highlight & notice ──
+    const paymentRadios = document.querySelectorAll('input[name="payment_method"]');
+    const submitBtn     = document.querySelector('button[type="submit"]');
+    const notice        = document.getElementById('online-payment-notice');
+
+    function updatePaymentUI() {
+        const selected = document.querySelector('input[name="payment_method"]:checked');
+        const val      = selected ? selected.value : 'cod';
+
+        // Highlight tất cả options
+        document.querySelectorAll('.payment-option').forEach(el => {
+            el.classList.remove('border-primary', 'border-danger', 'bg-light');
+        });
+
+        const activeLabel = selected ? selected.closest('.payment-option') : null;
+        if (activeLabel) activeLabel.classList.add('border-primary', 'bg-light');
+
+        // Hiện thông báo + đổi text nút
+        if (val === 'vnpay') {
+            notice.classList.remove('d-none');
+            notice.innerHTML = '<i class="fas fa-shield-alt me-1" style="color:#0066b3;"></i>'
+                + ' Bạn sẽ được chuyển đến cổng thanh toán <strong>VNPay</strong> an toàn sau khi đặt hàng.';
+            submitBtn.innerHTML = '<i class="fas fa-credit-card me-1"></i> Đặt hàng & Thanh toán VNPay';
+        } else if (val === 'momo') {
+            notice.classList.remove('d-none');
+            notice.innerHTML = '<i class="fas fa-shield-alt me-1" style="color:#a50064;"></i>'
+                + ' Bạn sẽ được chuyển đến ví điện tử <strong>MoMo</strong> an toàn sau khi đặt hàng.';
+            submitBtn.innerHTML = '<i class="fas fa-mobile-alt me-1"></i> Đặt hàng & Thanh toán MoMo';
+        } else {
+            notice.classList.add('d-none');
+            submitBtn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Đặt hàng';
+        }
+    }
+
+    paymentRadios.forEach(r => r.addEventListener('change', updatePaymentUI));
+    updatePaymentUI(); // chạy lần đầu
 });
 </script>
 

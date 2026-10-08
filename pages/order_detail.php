@@ -186,7 +186,14 @@ include dirname(__DIR__) . '/includes/header.php';
                         <i class="fas fa-times me-1"></i>Hủy đơn hàng
                     </a>
                     <?php endif; ?>
-                    
+
+                    <?php if ($order['payment_status'] === 'unpaid' && $order['status'] === 'pending' && in_array($order['payment_method'], ['vnpay', 'momo'])): ?>
+                    <a href="<?php echo url('payment/' . $order['payment_method'] . '_create.php?order_id=' . $order['id']); ?>" 
+                       class="btn btn-warning w-100 mt-2 fw-bold">
+                        <i class="fas fa-redo me-1"></i>Thanh toán lại
+                    </a>
+                    <?php endif; ?>
+
                     <a href="<?php echo url('pages/products.php'); ?>" class="btn-wink-outline w-100 justify-content-center mt-2">
                         <i class="fas fa-shopping-bag me-1"></i>Tiếp tục mua sắm
                     </a>
