@@ -29,7 +29,7 @@ if (!$order) {
 
 // Lấy chi tiết sản phẩm trong đơn hàng
 $stmtItems = $pdo->prepare('
-    SELECT oi.*, p.thumbnail as product_image
+    SELECT oi.*, p.thumbnail as product_image, p.slug as product_slug
     FROM order_items oi
     LEFT JOIN products p ON oi.product_id = p.id
     WHERE oi.order_id = ?
@@ -117,6 +117,9 @@ include dirname(__DIR__) . '/includes/header.php';
                                     <th>Giá</th>
                                     <th>Số lượng</th>
                                     <th>Thành tiền</th>
+                                    <?php if ($order['status'] === 'delivered'): ?>
+                                    <th class="text-center">Đánh giá</th>
+                                    <?php endif; ?>
                                 </tr>
                             </thead>
                             <tbody>
@@ -124,8 +127,10 @@ include dirname(__DIR__) . '/includes/header.php';
                                 <tr>
                                     <td>
                                         <div class="d-flex align-items-center gap-3">
-                                            <img src="<?php echo !empty($item['product_image']) ? PRODUCT_UPLOAD_URL . '/' . e($item['product_image']) : asset('images/default/no-product.png'); ?>" 
-                                                 style="width:60px;height:60px;object-fit:cover;border-radius:8px;">
+                                            <a href="<?php echo url('pages/product_detail.php?slug=' . e($item['product_slug'] ?? '')); ?>">
+                                                <img src="<?php echo !empty($item['product_image']) ? PRODUCT_UPLOAD_URL . '/' . e($item['product_image']) : asset('images/default/no-product.png'); ?>" 
+                                                     style="width:60px;height:60px;object-fit:cover;border-radius:8px;">
+                                            </a>
                                             <div>
                                                 <div class="fw-bold"><?php echo e($item['product_name']); ?></div>
                                                 <small class="text-muted">Size: <?php echo e($item['size']); ?> | Màu: <?php echo e($item['color']); ?></small>
@@ -135,6 +140,19 @@ include dirname(__DIR__) . '/includes/header.php';
                                     <td><?php echo formatPrice($item['price']); ?></td>
                                     <td><?php echo $item['quantity']; ?></td>
                                     <td class="fw-bold"><?php echo formatPrice($item['subtotal']); ?></td>
+                                    <?php if ($order['status'] === 'delivered'): ?>
+                                    <td class="text-center">
+                                        <?php if ($item['is_reviewed']): ?>
+                                            <span class="badge bg-success"><i class="fas fa-check me-1"></i>Đã đánh giá</span>
+                                        <?php else: ?>
+                                            <button class="btn btn-sm btn-warning fw-bold"
+                                                    onclick="openReviewModal(<?php echo $item['id']; ?>, '<?php echo e($item['product_name']); ?>', '<?php echo !empty($item['product_image']) ? PRODUCT_UPLOAD_URL . '/' . e($item['product_image']) : asset('images/default/no-product.png'); ?>')"
+                                                    style="font-size:12px;">
+                                                <i class="fas fa-star me-1"></i>Viết đánh giá
+                                            </button>
+                                        <?php endif; ?>
+                                    </td>
+                                    <?php endif; ?>
                                 </tr>
                                 <?php endforeach; ?>
                             </tbody>
@@ -202,6 +220,189 @@ include dirname(__DIR__) . '/includes/header.php';
         </div>
     </div>
 </section>
+
+<!-- ═══════════════════════════════════════════════════════
+     MODAL ĐÁNH GIÁ SẢN PHẨM
+═══════════════════════════════════════════════════════ -->
+<div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:16px;overflow:hidden;border:none;">
+            <div class="modal-header" style="background:linear-gradient(135deg,#f36811,#ff8c42);border:none;">
+                <h5 class="modal-title text-white fw-bold" id="reviewModalLabel">
+                    <i class="fas fa-star me-2"></i>Viết đánh giá
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <!-- Product preview -->
+                <div class="d-flex align-items-center gap-3 mb-4 p-3" style="background:#fff8f3;border-radius:12px;border:1px solid #ffe0cc;">
+                    <img id="reviewProductImg" src="" alt="" style="width:56px;height:56px;object-fit:cover;border-radius:10px;">
+                    <div>
+                        <div class="fw-bold" id="reviewProductName" style="color:#1a1a2e;"></div>
+                        <small class="text-muted">Chia sẻ trải nghiệm của bạn về sản phẩm này</small>
+                    </div>
+                </div>
+
+                <form id="reviewForm" enctype="multipart/form-data">
+                    <input type="hidden" id="reviewOrderItemId" name="order_item_id" value="">
+
+                    <!-- Star Rating -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold mb-2">Đánh giá của bạn <span class="text-danger">*</span></label>
+                        <div class="star-picker d-flex gap-1" id="starPicker">
+                            <?php for ($s = 1; $s <= 5; $s++): ?>
+                            <button type="button" class="star-btn" data-val="<?php echo $s; ?>" onclick="setRating(<?php echo $s; ?>)">
+                                <i class="fas fa-star"></i>
+                            </button>
+                            <?php endfor; ?>
+                        </div>
+                        <input type="hidden" name="rating" id="ratingInput" value="0">
+                        <small id="ratingLabel" class="text-muted mt-1 d-block">Chọn số sao</small>
+                    </div>
+
+                    <!-- Content -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Nhận xét <span class="text-muted fw-normal" style="font-size:13px;">(tuỳ chọn)</span></label>
+                        <textarea name="content" id="reviewContent" class="form-control"
+                                  rows="4" placeholder="Hãy chia sẻ cảm nhận của bạn về chất lượng, kiểu dáng, độ êm ái..."
+                                  style="border-radius:10px;resize:none;"></textarea>
+                    </div>
+
+                    <!-- Image Upload -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Ảnh đính kèm <span class="text-muted fw-normal" style="font-size:13px;">(tuỳ chọn, tối đa 5MB)</span></label>
+                        <div class="review-upload-area" id="reviewUploadArea" onclick="document.getElementById('reviewImageInput').click()">
+                            <input type="file" name="review_image" id="reviewImageInput" accept="image/*" style="display:none;" onchange="previewReviewImage(this)">
+                            <div id="reviewUploadPlaceholder">
+                                <i class="fas fa-camera fa-2x mb-2" style="color:#f36811;"></i>
+                                <p class="mb-0">Nhấn để thêm ảnh</p>
+                                <small class="text-muted">JPG, PNG, WebP</small>
+                            </div>
+                            <img id="reviewImagePreview" src="" alt="" style="display:none;max-width:100%;max-height:180px;border-radius:10px;object-fit:cover;">
+                        </div>
+                        <button type="button" id="removeReviewImage" class="btn btn-sm btn-outline-danger mt-2" style="display:none;" onclick="removeReviewImg()">
+                            <i class="fas fa-trash me-1"></i>Xóa ảnh
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" style="border-top:1px solid #f0f0f0;">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy bỏ</button>
+                <button type="button" class="btn btn-warning fw-bold px-4" id="submitReviewBtn" onclick="submitReview()">
+                    <i class="fas fa-paper-plane me-2"></i>Gửi đánh giá
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* ── Star Picker ── */
+.star-picker { display:flex; gap:6px; }
+.star-btn {
+    background:none; border:none; padding:4px;
+    font-size:32px; color:#ddd; cursor:pointer;
+    transition:color .15s, transform .15s;
+    line-height:1;
+}
+.star-btn:hover, .star-btn.active { color:#ffc107; }
+.star-btn:hover { transform: scale(1.15); }
+
+/* ── Upload Area ── */
+.review-upload-area {
+    border: 2px dashed #f36811;
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    background: #fff8f3;
+    transition: background .2s, border-color .2s;
+    min-height: 120px;
+    display:flex; align-items:center; justify-content:center; flex-direction:column;
+}
+.review-upload-area:hover { background:#fff0e6; border-color:#d95a0a; }
+</style>
+
+<script>
+// ── Review Modal ────────────────────────────────────────
+let currentRating = 0;
+const ratingLabels = ['', 'Rất tệ', 'Không hài lòng', 'Bình thường', 'Hài lòng', 'Rất hài lòng ✨'];
+
+function openReviewModal(orderItemId, productName, productImg) {
+    document.getElementById('reviewOrderItemId').value = orderItemId;
+    document.getElementById('reviewProductName').textContent = productName;
+    document.getElementById('reviewProductImg').src = productImg;
+    // Reset
+    setRating(0);
+    document.getElementById('reviewContent').value = '';
+    removeReviewImg();
+    new bootstrap.Modal(document.getElementById('reviewModal')).show();
+}
+
+function setRating(val) {
+    currentRating = val;
+    document.getElementById('ratingInput').value = val;
+    document.getElementById('ratingLabel').textContent = val > 0 ? ratingLabels[val] : 'Chọn số sao';
+    document.querySelectorAll('.star-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', i < val);
+    });
+}
+
+function previewReviewImage(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            document.getElementById('reviewImagePreview').src = e.target.result;
+            document.getElementById('reviewImagePreview').style.display = 'block';
+            document.getElementById('reviewUploadPlaceholder').style.display = 'none';
+            document.getElementById('removeReviewImage').style.display = 'inline-flex';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function removeReviewImg() {
+    document.getElementById('reviewImageInput').value = '';
+    document.getElementById('reviewImagePreview').src = '';
+    document.getElementById('reviewImagePreview').style.display = 'none';
+    document.getElementById('reviewUploadPlaceholder').style.display = 'flex';
+    document.getElementById('reviewUploadPlaceholder').style.flexDirection = 'column';
+    document.getElementById('removeReviewImage').style.display = 'none';
+}
+
+function submitReview() {
+    if (currentRating === 0) {
+        showToast('warning', 'Vui lòng chọn số sao đánh giá.');
+        return;
+    }
+
+    const btn = document.getElementById('submitReviewBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang gửi...';
+
+    const formData = new FormData(document.getElementById('reviewForm'));
+    formData.append('action', 'submit_review');
+
+    fetch(BASE_URL + '/ajax/review_actions.php', { method:'POST', body:formData })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('reviewModal')).hide();
+                showToast('success', data.message);
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showToast('error', data.message || 'Có lỗi xảy ra.');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Gửi đánh giá';
+            }
+        })
+        .catch(() => {
+            showToast('error', 'Có lỗi xảy ra. Vui lòng thử lại.');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Gửi đánh giá';
+        });
+}
+</script>
 
 <script>
 function cancelOrder(orderId) {
