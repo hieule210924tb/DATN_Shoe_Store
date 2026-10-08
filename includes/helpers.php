@@ -183,7 +183,7 @@ function getCurrentUserAvatar() {
  * @return string
  */
 function formatPrice($amount) {
-    return number_format($amount, 0, ',', '.') . 'đ';
+    return number_format((float)($amount ?? 0), 0, ',', '.') . 'đ';
 }
 
 /**
