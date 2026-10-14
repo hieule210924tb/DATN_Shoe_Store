@@ -64,6 +64,20 @@ define('MOMO_ENDPOINT', 'https://test-payment.momo.vn/v2/gateway/api/create');
 define('MOMO_RETURN_URL', BASE_URL . '/payment/momo_return.php');
 define('MOMO_NOTIFY_URL', BASE_URL . '/payment/momo_notify.php');
 
+// Cấu hình gửi Email (Gmail SMTP qua PHPMailer)
+// *** Bật xác minh 2 bước cho Gmail, rồi tạo App Password tại https://myaccount.google.com/apppasswords ***
+define('SMTP_HOST', 'smtp.gmail.com');
+define('SMTP_PORT', 587);  // 587 = STARTTLS
+define('SMTP_USERNAME', 'manu210924@gmail.com');  // VD: wink.shoestore@gmail.com
+define('SMTP_PASSWORD', 'wypwtdxwxjzclwjf');  // App Password 16 ký tự (không phải mật khẩu Gmail)
+define('SMTP_FROM_EMAIL', SMTP_USERNAME);
+define('SMTP_FROM_NAME', 'WinK Shoe Store');
+
+// Quên mật khẩu (OTP)
+define('OTP_EXPIRE_MINUTES', 10);  // Thời gian hiệu lực mã OTP
+define('OTP_RESEND_SECONDS', 60);  // Thời gian chờ trước khi gửi lại mã
+define('OTP_MAX_ATTEMPTS', 5);  // Số lần nhập sai tối đa
+
 // Tải file database connection
 require_once ROOT_PATH . '/config/database.php';
 
