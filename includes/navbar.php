@@ -105,7 +105,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                                 <li><a class="dropdown-item py-2" href="<?php echo url('pages/profile.php'); ?>"><i class="fas fa-user me-2 text-muted"></i>Tài khoản</a></li>
                                 <li><a class="dropdown-item py-2" href="<?php echo url('pages/orders.php'); ?>"><i class="fas fa-box me-2 text-muted"></i>Đơn hàng</a></li>
                                 <li><a class="dropdown-item py-2" href="<?php echo url('pages/wishlist.php'); ?>"><i class="fas fa-heart me-2 text-muted"></i>Yêu thích</a></li>
-                                <li><a class="dropdown-item py-2" href="<?php echo url('pages/change_password.php'); ?>"><i class="fas fa-key me-2 text-muted"></i>Đổi mật khẩu</a></li>
+                                <li><a class="dropdown-item py-2" href="<?php echo url('auth/change_password.php'); ?>"><i class="fas fa-key me-2 text-muted"></i>Đổi mật khẩu</a></li>
                                 <li><hr class="dropdown-divider my-1"></li>
                                 <li><a class="dropdown-item py-2 text-danger" href="<?php echo url('auth/logout.php'); ?>"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
                             </ul>

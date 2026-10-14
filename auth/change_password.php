@@ -10,6 +10,11 @@ $userId = getCurrentUserId();
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        setFlashMessage('error', 'Phiên làm việc không hợp lệ, vui lòng thử lại.');
+        redirect(url('auth/change_password.php'));
+    }
+
     $currentPassword = $_POST['current_password'] ?? '';
     $newPassword = $_POST['new_password'] ?? '';
     $confirmPassword = $_POST['confirm_password'] ?? '';
@@ -24,8 +29,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors['new'] = 'Mật khẩu mới phải có ít nhất 6 ký tự.';
     }
     
-    if ($newPassword !== $confirmPassword) {
+    if (empty($confirmPassword)) {
+        $errors['confirm'] = 'Vui lòng xác nhận mật khẩu mới.';
+    } elseif ($newPassword !== $confirmPassword) {
         $errors['confirm'] = 'Mật khẩu xác nhận không khớp.';
+    }
+
+    if (empty($errors['new']) && $newPassword !== '' && $newPassword === $currentPassword) {
+        $errors['new'] = 'Mật khẩu mới phải khác mật khẩu hiện tại.';
     }
     
     if (empty($errors)) {
@@ -33,64 +44,244 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([$userId]);
         $user = $stmt->fetch();
         
-        if (!password_verify($currentPassword, $user['password'])) {
+        if (!$user || !password_verify($currentPassword, $user['password'])) {
             $errors['current'] = 'Mật khẩu hiện tại không đúng.';
         } else {
             $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
             $stmtUpdate = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
             $stmtUpdate->execute([$hashedPassword, $userId]);
-            
-            setFlashMessage('success', 'Đổi mật khẩu thành công! Vui lòng đăng nhập lại.');
-            redirect(url('auth/logout.php'));
+
+            // Đăng xuất (hủy session) rồi chuyển về trang đăng nhập kèm thông báo
+            $_SESSION = [];
+            if (ini_get('session.use_cookies')) {
+                $params = session_get_cookie_params();
+                setcookie(session_name(), '', time() - 42000,
+                    $params['path'], $params['domain'], $params['secure'], $params['httponly']);
+            }
+            session_destroy();
+            session_start();
+            setFlashMessage('success', 'Đổi mật khẩu thành công! Vui lòng đăng nhập lại bằng mật khẩu mới.');
+            redirect(url('auth/login.php'));
         }
     }
 }
 
+// Thông tin user hiển thị ở panel trái
+$stmtInfo = $pdo->prepare("SELECT full_name, email FROM users WHERE id = ?");
+$stmtInfo->execute([$userId]);
+$userInfo = $stmtInfo->fetch() ?: ['full_name' => getCurrentUserName(), 'email' => ''];
+
 $pageTitle = 'Đổi mật khẩu - WinK';
+$pageDescription = 'Đổi mật khẩu tài khoản WinK Shoe Store để bảo vệ tài khoản của bạn.';
+$extraCSS = ['change_password.css'];
 include dirname(__DIR__) . '/includes/header.php';
+
+/** Render class trạng thái cho field */
+$fieldClass = function ($key) use ($errors) {
+    return !empty($errors[$key]) ? ' is-invalid' : '';
+};
 ?>
 
-<section class="section-padding">
+<section class="cp-section">
     <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-lg-6 col-md-8">
-                <div class="bg-white rounded-3 shadow-sm p-4 p-md-5">
-                    <div class="text-center mb-4">
-                        <div class="d-inline-flex align-items-center justify-content-center bg-light text-primary rounded-circle mb-3" style="width:60px;height:60px;font-size:24px;">
-                            <i class="fas fa-key"></i>
-                        </div>
-                        <h4 class="fw-bold">Đổi Mật Khẩu</h4>
-                        <p class="text-muted">Để bảo mật tài khoản, vui lòng không chia sẻ mật khẩu cho người khác</p>
+        <div class="cp-card">
+            <!-- Panel trái -->
+            <aside class="cp-aside">
+                <a href="<?php echo url('pages/profile.php'); ?>" class="cp-back" id="cpBackLink">
+                    <i class="fas fa-arrow-left"></i> Về trang cá nhân
+                </a>
+
+                <div class="cp-shield"><i class="fas fa-shield-halved"></i></div>
+                <h1>Đổi mật khẩu</h1>
+                <p class="cp-lead">Cập nhật mật khẩu định kỳ giúp tài khoản và đơn hàng của bạn luôn an toàn.</p>
+
+                <div class="cp-user">
+                    <img src="<?php echo getCurrentUserAvatar(); ?>" alt="Avatar">
+                    <div>
+                        <strong><?php echo e($userInfo['full_name']); ?></strong>
+                        <small><?php echo e($userInfo['email']); ?></small>
                     </div>
-                    
-                    <form method="POST">
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Mật khẩu hiện tại</label>
-                            <input type="password" name="current_password" class="form-control <?php echo !empty($errors['current']) ? 'is-invalid' : ''; ?>" required>
-                            <?php if (!empty($errors['current'])): ?><div class="invalid-feedback"><?php echo $errors['current']; ?></div><?php endif; ?>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Mật khẩu mới</label>
-                            <input type="password" name="new_password" class="form-control <?php echo !empty($errors['new']) ? 'is-invalid' : ''; ?>" required>
-                            <?php if (!empty($errors['new'])): ?><div class="invalid-feedback"><?php echo $errors['new']; ?></div><?php endif; ?>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label class="form-label fw-semibold">Xác nhận mật khẩu mới</label>
-                            <input type="password" name="confirm_password" class="form-control <?php echo !empty($errors['confirm']) ? 'is-invalid' : ''; ?>" required>
-                            <?php if (!empty($errors['confirm'])): ?><div class="invalid-feedback"><?php echo $errors['confirm']; ?></div><?php endif; ?>
-                        </div>
-                        
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn-wink py-2">Xác nhận</button>
-                            <a href="<?php echo url('pages/profile.php'); ?>" class="btn btn-outline-secondary py-2">Trở về trang cá nhân</a>
-                        </div>
-                    </form>
                 </div>
+
+                <ul class="cp-tips">
+                    <li><i class="fas fa-lock"></i><span>Không dùng lại mật khẩu của các website khác.</span></li>
+                    <li><i class="fas fa-shuffle"></i><span>Kết hợp chữ hoa, chữ thường, số và ký tự đặc biệt.</span></li>
+                    <li><i class="fas fa-user-secret"></i><span>Không chia sẻ mật khẩu cho bất kỳ ai, kể cả nhân viên WinK.</span></li>
+                </ul>
+            </aside>
+
+            <!-- Form -->
+            <div class="cp-main">
+                <h2>Tạo mật khẩu mới</h2>
+                <p class="cp-sub">Nhập mật khẩu hiện tại và mật khẩu mới bạn muốn sử dụng.</p>
+
+                <form method="POST" id="changePasswordForm" novalidate>
+                    <?php echo csrfField(); ?>
+
+                    <!-- Mật khẩu hiện tại -->
+                    <div class="cp-field<?php echo $fieldClass('current'); ?>">
+                        <label class="cp-label" for="current_password">Mật khẩu hiện tại</label>
+                        <div class="cp-input">
+                            <i class="fas fa-lock cp-icon"></i>
+                            <input type="password" id="current_password" name="current_password"
+                                   placeholder="Nhập mật khẩu hiện tại" autocomplete="current-password" required>
+                            <button type="button" class="cp-toggle" data-target="current_password" aria-label="Hiện mật khẩu"><i class="fas fa-eye"></i></button>
+                        </div>
+                        <?php if (!empty($errors['current'])): ?>
+                            <div class="cp-error"><i class="fas fa-circle-exclamation"></i><?php echo e($errors['current']); ?></div>
+                        <?php endif; ?>
+                    </div>
+
+                    <!-- Mật khẩu mới -->
+                    <div class="cp-field<?php echo $fieldClass('new'); ?>" id="newField">
+                        <label class="cp-label" for="new_password">Mật khẩu mới</label>
+                        <div class="cp-input">
+                            <i class="fas fa-key cp-icon"></i>
+                            <input type="password" id="new_password" name="new_password"
+                                   placeholder="Tối thiểu 6 ký tự" autocomplete="new-password" minlength="6" required>
+                            <button type="button" class="cp-toggle" data-target="new_password" aria-label="Hiện mật khẩu"><i class="fas fa-eye"></i></button>
+                        </div>
+                        <?php if (!empty($errors['new'])): ?>
+                            <div class="cp-error"><i class="fas fa-circle-exclamation"></i><?php echo e($errors['new']); ?></div>
+                        <?php endif; ?>
+
+                        <div class="cp-strength" id="strengthBar" data-level="0">
+                            <span></span><span></span><span></span><span></span>
+                        </div>
+                        <div class="cp-strength-text">
+                            <span>Độ mạnh mật khẩu</span>
+                            <b id="strengthLabel">—</b>
+                        </div>
+
+                        <ul class="cp-rules" id="pwRules">
+                            <li data-rule="length"><i class="fas fa-check"></i>Ít nhất 6 ký tự</li>
+                            <li data-rule="case"><i class="fas fa-check"></i>Chữ hoa &amp; chữ thường</li>
+                            <li data-rule="number"><i class="fas fa-check"></i>Có chữ số</li>
+                            <li data-rule="special"><i class="fas fa-check"></i>Có ký tự đặc biệt</li>
+                        </ul>
+                    </div>
+
+                    <!-- Xác nhận -->
+                    <div class="cp-field<?php echo $fieldClass('confirm'); ?>" id="confirmField">
+                        <label class="cp-label" for="confirm_password">Xác nhận mật khẩu mới</label>
+                        <div class="cp-input">
+                            <i class="fas fa-circle-check cp-icon"></i>
+                            <input type="password" id="confirm_password" name="confirm_password"
+                                   placeholder="Nhập lại mật khẩu mới" autocomplete="new-password" required>
+                            <button type="button" class="cp-toggle" data-target="confirm_password" aria-label="Hiện mật khẩu"><i class="fas fa-eye"></i></button>
+                        </div>
+                        <?php if (!empty($errors['confirm'])): ?>
+                            <div class="cp-error"><i class="fas fa-circle-exclamation"></i><?php echo e($errors['confirm']); ?></div>
+                        <?php else: ?>
+                            <div class="cp-hint" id="matchHint" hidden></div>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="cp-actions">
+                        <a href="<?php echo url('pages/profile.php'); ?>" class="cp-cancel" id="cpCancelBtn">Hủy</a>
+                        <button type="submit" class="cp-submit" id="cpSubmitBtn">
+                            <span class="cp-spinner"></span>
+                            <i class="fas fa-shield-halved cp-submit-icon"></i>
+                            Cập nhật mật khẩu
+                        </button>
+                    </div>
+
+                    <p class="cp-note">
+                        <i class="fas fa-circle-info"></i>
+                        Sau khi đổi mật khẩu thành công, bạn sẽ được đăng xuất và cần đăng nhập lại bằng mật khẩu mới.
+                    </p>
+                </form>
             </div>
         </div>
     </div>
 </section>
+
+<script>
+(function () {
+    var newPw = document.getElementById('new_password');
+    var confirmPw = document.getElementById('confirm_password');
+    var bar = document.getElementById('strengthBar');
+    var label = document.getElementById('strengthLabel');
+    var rules = document.querySelectorAll('#pwRules li');
+    var matchHint = document.getElementById('matchHint');
+    var confirmField = document.getElementById('confirmField');
+    var levels = [
+        { text: '—', color: '' },
+        { text: 'Yếu', color: 'var(--danger)' },
+        { text: 'Trung bình', color: 'var(--warning)' },
+        { text: 'Khá', color: '#84cc16' },
+        { text: 'Mạnh', color: 'var(--success)' }
+    ];
+
+    // Hiện / ẩn mật khẩu
+    document.querySelectorAll('.cp-toggle').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var input = document.getElementById(btn.dataset.target);
+            var show = input.type === 'password';
+            input.type = show ? 'text' : 'password';
+            btn.querySelector('i').className = show ? 'fas fa-eye-slash' : 'fas fa-eye';
+            btn.setAttribute('aria-label', show ? 'Ẩn mật khẩu' : 'Hiện mật khẩu');
+            input.focus();
+        });
+    });
+
+    // Xóa trạng thái lỗi khi người dùng gõ lại
+    document.querySelectorAll('.cp-field input').forEach(function (input) {
+        input.addEventListener('input', function () {
+            var field = input.closest('.cp-field');
+            field.classList.remove('is-invalid');
+            var err = field.querySelector('.cp-error');
+            if (err) err.remove();
+        });
+    });
+
+    function checkStrength() {
+        var v = newPw.value;
+        var checks = {
+            length: v.length >= 6,
+            case: /[a-z]/.test(v) && /[A-Z]/.test(v),
+            number: /\d/.test(v),
+            special: /[^A-Za-z0-9]/.test(v)
+        };
+        var score = 0;
+        rules.forEach(function (li) {
+            var ok = checks[li.dataset.rule];
+            li.classList.toggle('ok', ok);
+            if (ok) score++;
+        });
+        if (v.length && !checks.length) score = 1;
+        if (!v.length) score = 0;
+        bar.dataset.level = score;
+        label.textContent = levels[score].text;
+        label.style.color = levels[score].color;
+    }
+
+    function checkMatch() {
+        if (!matchHint) return;
+        if (!confirmPw.value) {
+            matchHint.hidden = true;
+            confirmField.classList.remove('is-valid');
+            return;
+        }
+        var ok = confirmPw.value === newPw.value;
+        matchHint.hidden = false;
+        matchHint.className = 'cp-hint ' + (ok ? 'ok' : 'bad');
+        matchHint.innerHTML = ok
+            ? '<i class="fas fa-circle-check"></i>Mật khẩu xác nhận khớp'
+            : '<i class="fas fa-circle-xmark"></i>Mật khẩu xác nhận chưa khớp';
+        confirmField.classList.toggle('is-valid', ok);
+    }
+
+    newPw.addEventListener('input', function () { checkStrength(); checkMatch(); });
+    confirmPw.addEventListener('input', checkMatch);
+
+    // Trạng thái loading khi submit
+    document.getElementById('changePasswordForm').addEventListener('submit', function () {
+        var btn = document.getElementById('cpSubmitBtn');
+        btn.classList.add('loading');
+        btn.disabled = true;
+    });
+})();
+</script>
 
 <?php include dirname(__DIR__) . '/includes/footer.php'; ?>
