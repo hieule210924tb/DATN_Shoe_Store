@@ -255,6 +255,135 @@ function toggleWishlist(productId, btn) {
 }
 
 // =====================================================
+// ĐẶT LẠI ĐƠN HÀNG (RE-ORDER)
+// =====================================================
+function reorder(orderId, btn) {
+    if (!orderId) return;
+
+    const executeAction = () => {
+        let originalHtml = '';
+        if (btn) {
+            originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang xử lý...';
+        }
+
+        const formData = new FormData();
+        formData.append('action', 'reorder');
+        formData.append('order_id', orderId);
+
+        fetch(BASE_URL + '/ajax/order_actions.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (typeof updateCartBadge === 'function' && data.cart_count !== undefined) {
+                    updateCartBadge(data.cart_count);
+                }
+
+                if (typeof Swal !== 'undefined') {
+                    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Đặt lại thành công!',
+                        text: data.message || 'Sản phẩm đã được thêm vào giỏ hàng.',
+                        timer: 1500,
+                        showConfirmButton: false,
+                        background: isDark ? '#1e1e2d' : '#fff',
+                        color: isDark ? '#fff' : '#1a1a2e'
+                    }).then(() => {
+                        window.location.href = data.redirect_url || (BASE_URL + '/pages/cart.php');
+                    });
+                } else {
+                    if (typeof showToast === 'function') {
+                        showToast('success', data.message || 'Đã thêm sản phẩm vào giỏ hàng!');
+                    }
+                    setTimeout(() => {
+                        window.location.href = data.redirect_url || (BASE_URL + '/pages/cart.php');
+                    }, 800);
+                }
+            } else {
+                if (typeof Swal !== 'undefined') {
+                    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Thông báo',
+                        text: data.message || 'Không thể đặt lại đơn hàng này.',
+                        confirmButtonText: 'Đã hiểu',
+                        confirmButtonColor: '#f36811',
+                        background: isDark ? '#1e1e2d' : '#fff',
+                        color: isDark ? '#fff' : '#1a1a2e'
+                    });
+                } else {
+                    if (typeof showToast === 'function') {
+                        showToast('error', data.message || 'Không thể đặt lại đơn hàng.');
+                    } else {
+                        alert(data.message || 'Không thể đặt lại đơn hàng.');
+                    }
+                }
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Lỗi đặt lại đơn hàng:', error);
+            if (typeof Swal !== 'undefined') {
+                const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi kết nối',
+                    text: 'Không thể kết nối đến máy chủ. Vui lòng thử lại sau.',
+                    confirmButtonText: 'Đóng',
+                    confirmButtonColor: '#f36811',
+                    background: isDark ? '#1e1e2d' : '#fff',
+                    color: isDark ? '#fff' : '#1a1a2e'
+                });
+            } else {
+                if (typeof showToast === 'function') {
+                    showToast('error', 'Có lỗi kết nối. Vui lòng thử lại.');
+                } else {
+                    alert('Có lỗi kết nối. Vui lòng thử lại.');
+                }
+            }
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+        });
+    };
+
+    if (typeof Swal !== 'undefined') {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        Swal.fire({
+            title: 'Mua lại đơn hàng này?',
+            html: 'Hệ thống sẽ thêm các sản phẩm còn hàng vào giỏ hàng của bạn để tiến hành thanh toán.<br><small class="' + (isDark ? 'text-secondary' : 'text-muted') + '">Bạn có thể chỉnh sửa số lượng hoặc áp dụng mã giảm giá mới trong giỏ hàng.</small>',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<i class="fas fa-redo me-1"></i> Đồng ý, đặt lại',
+            cancelButtonText: 'Để sau',
+            reverseButtons: true,
+            background: isDark ? '#1e1e2d' : '#fff',
+            color: isDark ? '#fff' : '#1a1a2e'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                executeAction();
+            }
+        });
+    } else {
+        if (confirm('Bạn có muốn đặt lại đơn hàng này không? Các sản phẩm sẽ được thêm vào giỏ hàng của bạn.')) {
+            executeAction();
+        }
+    }
+}
+
+
+// =====================================================
 // TOAST NOTIFICATION
 // =====================================================
 

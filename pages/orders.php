@@ -41,7 +41,7 @@ include dirname(__DIR__) . '/includes/header.php';
                                     <th>Tổng tiền</th>
                                     <th>Trạng thái</th>
                                     <th>Thanh toán</th>
-                                    <th></th>
+                                    <th class="text-end">Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -66,11 +66,21 @@ include dirname(__DIR__) . '/includes/header.php';
                                             <?php echo getPaymentStatusText($order['payment_status']); ?>
                                         </span>
                                     </td>
-                                    <td>
-                                        <a href="<?php echo url('pages/order_detail.php?id=' . $order['id']); ?>" 
-                                           class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-eye me-1"></i>Chi tiết
-                                        </a>
+                                    <td class="text-end text-nowrap">
+                                        <div class="d-inline-flex align-items-center gap-1">
+                                            <a href="<?php echo url('pages/order_detail.php?id=' . $order['id']); ?>" 
+                                               class="btn btn-sm btn-outline-primary" title="Xem chi tiết đơn hàng">
+                                                <i class="fas fa-eye me-1"></i>Chi tiết
+                                            </a>
+                                            <?php if (in_array($order['status'], ['cancelled', 'delivered'])): ?>
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-success text-white btn-reorder" 
+                                                    onclick="reorder(<?php echo $order['id']; ?>, this)"
+                                                    title="Đặt lại các sản phẩm trong đơn hàng này">
+                                                <i class="fas fa-redo me-1"></i>Đặt lại
+                                            </button>
+                                            <?php endif; ?>
+                                        </div>
                                     </td>
                                 </tr>
                                 <?php endforeach; ?>

@@ -46,11 +46,25 @@ include dirname(__DIR__) . '/includes/header.php';
 
 <section class="section-padding" style="padding-top: 30px;">
     <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="fw-bold mb-0"><i class="fas fa-file-invoice me-2"></i>Chi tiết đơn hàng <?php echo e($order['order_code']); ?></h4>
-            <span class="badge <?php echo getOrderStatusBadge($order['status']); ?> fs-6">
-                <?php echo getOrderStatusText($order['status']); ?>
-            </span>
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-3">
+                <a href="<?php echo url('pages/orders.php'); ?>" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Đơn hàng
+                </a>
+                <h4 class="fw-bold mb-0"><i class="fas fa-file-invoice me-2"></i>Chi tiết đơn hàng <?php echo e($order['order_code']); ?></h4>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge <?php echo getOrderStatusBadge($order['status']); ?> fs-6">
+                    <?php echo getOrderStatusText($order['status']); ?>
+                </span>
+                <?php if (in_array($order['status'], ['cancelled', 'delivered'])): ?>
+                <button type="button" 
+                        class="btn btn-sm btn-success fw-bold text-white btn-reorder" 
+                        onclick="reorder(<?php echo $order['id']; ?>, this)">
+                    <i class="fas fa-redo me-1"></i>Đặt lại
+                </button>
+                <?php endif; ?>
+            </div>
         </div>
         
         <div class="row g-4">
@@ -238,6 +252,14 @@ include dirname(__DIR__) . '/includes/header.php';
                        class="btn btn-outline-danger w-100 mt-3">
                         <i class="fas fa-times me-1"></i>Hủy đơn hàng
                     </a>
+                    <?php endif; ?>
+
+                    <?php if (in_array($order['status'], ['cancelled', 'delivered'])): ?>
+                    <button type="button" 
+                            class="btn btn-success w-100 mt-3 fw-bold text-white btn-reorder" 
+                            onclick="reorder(<?php echo $order['id']; ?>, this)">
+                        <i class="fas fa-redo me-1"></i>Đặt lại đơn hàng này
+                    </button>
                     <?php endif; ?>
 
                     <?php if ($order['payment_status'] === 'unpaid' && $order['status'] === 'pending' && in_array($order['payment_method'], ['vnpay', 'momo'])): ?>

@@ -71,7 +71,7 @@ include dirname(__DIR__) . '/includes/header.php';
                 
                 <div class="list-group rounded-3 shadow-sm" style="border:none;">
                     <a href="<?php echo url('pages/profile.php'); ?>" class="list-group-item list-group-item-action active fw-semibold" style="border:none;"><i class="fas fa-user me-2"></i>Thông tin cá nhân</a>
-                    <a href="<?php echo url('pages/order_history.php'); ?>" class="list-group-item list-group-item-action" style="border:none;"><i class="fas fa-shopping-bag me-2"></i>Lịch sử đơn hàng</a>
+                    <a href="<?php echo url('pages/orders.php'); ?>" class="list-group-item list-group-item-action" style="border:none;"><i class="fas fa-shopping-bag me-2"></i>Lịch sử đơn hàng</a>
                     <a href="<?php echo url('pages/wishlist.php'); ?>" class="list-group-item list-group-item-action" style="border:none;"><i class="fas fa-heart me-2"></i>Sản phẩm yêu thích</a>
                     <a href="<?php echo url('auth/change_password.php'); ?>" class="list-group-item list-group-item-action" style="border:none;"><i class="fas fa-key me-2"></i>Đổi mật khẩu</a>
                     <a href="<?php echo url('auth/logout.php'); ?>" class="list-group-item list-group-item-action text-danger" style="border:none;"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a>
