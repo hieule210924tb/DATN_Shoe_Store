@@ -34,7 +34,7 @@ function refreshChatUnreadBadge() {
         .then(data => {
             if (data.success) setChatUnreadBadge(data.unread);
         })
-        .catch(() => {});
+        .catch(() => { });
 }
 
 function initChatWidget() {
@@ -46,14 +46,14 @@ function initChatWidget() {
             method: 'POST',
             body: formData
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                chatConversationId = data.conversation_id;
-                loadChatMessages();
-            }
-        })
-        .catch(error => console.error('Lỗi:', error));
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    chatConversationId = data.conversation_id;
+                    loadChatMessages();
+                }
+            })
+            .catch(error => console.error('Lỗi:', error));
     } else {
         loadChatMessages();
     }
@@ -101,7 +101,7 @@ function loadChatMessages() {
                                         <div class="chat-widget-bubble chat-widget-bubble-admin${imageClass}">
                                             ${renderChatBubbleContent(msg)}
                                         </div>
-                                        <div class="chat-widget-time">${msg.time}</div>
+                                        <div class="chat-widget-time chat-widget-time-admin">${msg.time}</div>
                                     </div>
                                 </div>
                             `;
@@ -156,11 +156,11 @@ function setChatImage(file) {
     }
 }
 
-document.getElementById('chatWidgetAttach').addEventListener('click', function() {
+document.getElementById('chatWidgetAttach').addEventListener('click', function () {
     document.getElementById('chatWidgetFile').click();
 });
 
-document.getElementById('chatWidgetFile').addEventListener('change', function() {
+document.getElementById('chatWidgetFile').addEventListener('change', function () {
     const file = this.files[0];
     if (!file) return;
 
@@ -177,12 +177,12 @@ document.getElementById('chatWidgetFile').addEventListener('change', function() 
     setChatImage(file);
 });
 
-document.getElementById('chatWidgetPreviewRemove').addEventListener('click', function() {
+document.getElementById('chatWidgetPreviewRemove').addEventListener('click', function () {
     setChatImage(null);
 });
 
 /* ───────── Gửi tin nhắn ───────── */
-document.getElementById('chatWidgetForm').addEventListener('submit', function(e) {
+document.getElementById('chatWidgetForm').addEventListener('submit', function (e) {
     e.preventDefault();
     const input = document.getElementById('chatWidgetInput');
     const message = input.value.trim();
@@ -205,26 +205,26 @@ document.getElementById('chatWidgetForm').addEventListener('submit', function(e)
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            input.value = '';
-            setChatImage(null);
-            const box = document.getElementById('chatWidgetMessages');
-            box.dataset.scrolled = ''; // gửi xong thì cuộn xuống tin mới nhất
-            loadChatMessages();
-        } else {
-            showToast('error', data.message || 'Không thể gửi tin nhắn.');
-        }
-    })
-    .catch(error => {
-        console.error('Lỗi:', error);
-        showToast('error', 'Có lỗi xảy ra.');
-    })
-    .finally(() => {
-        chatSending = false;
-        submitBtn.disabled = false;
-    });
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                input.value = '';
+                setChatImage(null);
+                const box = document.getElementById('chatWidgetMessages');
+                box.dataset.scrolled = ''; // gửi xong thì cuộn xuống tin mới nhất
+                loadChatMessages();
+            } else {
+                showToast('error', data.message || 'Không thể gửi tin nhắn.');
+            }
+        })
+        .catch(error => {
+            console.error('Lỗi:', error);
+            showToast('error', 'Có lỗi xảy ra.');
+        })
+        .finally(() => {
+            chatSending = false;
+            submitBtn.disabled = false;
+        });
 });
 
 function escapeHtml(text) {

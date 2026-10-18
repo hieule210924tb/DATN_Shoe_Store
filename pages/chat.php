@@ -312,7 +312,7 @@ function loadMessages() {
                                             <div class="chat-msg-time">${msg.time}</div>
                                         </div>
                                         <img src="${data.user_avatar}" 
-                                             class="chat-msg-avatar" alt="Bạn">
+                                             class="chat-msg-avatar" alt="B\u1ea1n">
                                     </div>
                                 </div>
                             `;

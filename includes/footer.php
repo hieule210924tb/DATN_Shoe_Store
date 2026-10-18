@@ -12,7 +12,7 @@
                     <a href="<?php echo url('index.php'); ?>" class="wink-footer-logo">Win<span>K</span></a>
                     <p class="mt-2">Cửa hàng giày trực tuyến uy tín hàng đầu Việt Nam. Cam kết sản phẩm chính hãng 100%, giao hàng nhanh chóng.</p>
                     <div class="wink-footer-social">
-                        <a href="#" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://www.facebook.com/levanhieu210924/?locale=vi_VN" title="Facebook"><i class="fab fa-facebook-f"></i></a>
                         <a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>
                         <a href="#" title="TikTok"><i class="fab fa-tiktok"></i></a>
                         <a href="#" title="YouTube"><i class="fab fa-youtube"></i></a>
@@ -56,7 +56,7 @@
                         </li>
                         <li>
                             <i class="fas fa-envelope"></i>
-                            <span><?php echo STORE_EMAIL; ?></span>
+                            <span>hieule210924@gmail.com</span>
                         </li>
                         <li>
                             <i class="fas fa-clock"></i>
