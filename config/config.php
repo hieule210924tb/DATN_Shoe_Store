@@ -1,13 +1,28 @@
 <?php
-/** Cấu hình chung - WinK Shoe Store */
-
 // Bắt đầu session nếu chưa có
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// URL gốc của website
-define('BASE_URL', 'http://localhost/DATN_Shoe_Store');
+// URL gốc của website - tự động detect protocol & host (hoạt động với localhost và ngrok)
+if (!defined('BASE_URL')) {
+    // Detect protocol: ngrok gửi X-Forwarded-Proto = https
+    if (!empty($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
+        $protocol = $_SERVER['HTTP_X_FORWARDED_PROTO'];
+    } elseif (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+        $protocol = 'https';
+    } else {
+        $protocol = 'http';
+    }
+
+    // Detect host: ngrok gửi HTTP_HOST = xxxx.ngrok-free.app
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+
+    // Subfolder luôn giữ nguyên (ngrok tunnel qua port 80 nên path vẫn như localhost)
+    $subFolder = '/DATN_Shoe_Store';
+
+    define('BASE_URL', $protocol . '://' . $host . $subFolder);
+}
 
 // Đường dẫn thư mục gốc
 define('ROOT_PATH', dirname(__DIR__));
