@@ -106,7 +106,7 @@ try {
     $msgMap = [
         'confirmed' => 'Đã xác nhận đơn hàng thành công.',
         'shipping'  => 'Đã chuyển trạng thái "Đang giao hàng".',
-        'delivered' => 'Đã xác nhận giao hàng thành công.',
+        'delivered' => ($order['payment_method'] === 'cod') ? 'Đã thanh toán' : 'Đã xác nhận giao hàng thành công.',
         'cancelled' => 'Đã huỷ đơn hàng và hoàn lại tồn kho.',
     ];
 

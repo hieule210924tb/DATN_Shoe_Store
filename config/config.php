@@ -58,9 +58,9 @@ define('SHIPPING_FEE_STANDARD', 0);  // Giao hàng tiêu chuẩn: miễn phí
 
 // Thông tin cửa hàng
 define('STORE_NAME', 'WinK Shoe Store');
-define('STORE_EMAIL', 'contact@wink.vn');
-define('STORE_PHONE', '0123 456 789');
-define('STORE_ADDRESS', 'Hà Nội, Việt Nam');
+define('STORE_EMAIL', 'hieule210924@wink.vn');
+define('STORE_PHONE', '0372953009');
+define('STORE_ADDRESS', 'Trung Kính,Hà Nội, Việt Nam');
 
 // Cấu hình VNPay Sandbox
 // *** Đăng ký tại https://sandbox.vnpayment.vn/devreg/ để lấy TMN Code và Hash Secret riêng ***

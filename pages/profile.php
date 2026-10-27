@@ -14,9 +14,9 @@ $user = $stmt->fetch();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fullName = trim($_POST['full_name'] ?? '');
     $phone = trim($_POST['phone'] ?? '');
-    $city = trim($_POST['city'] ?? '');           // tên tỉnh (từ hidden)
-    $ward = trim($_POST['ward'] ?? '');            // tên xã (từ hidden)
-    $streetAddress = trim($_POST['street_address'] ?? ''); // số nhà
+    $city = trim($_POST['city'] ?? '');  // tên tỉnh (từ hidden)
+    $ward = trim($_POST['ward'] ?? '');  // tên xã (từ hidden)
+    $streetAddress = trim($_POST['street_address'] ?? '');  // số nhà
     $address = implode(', ', array_filter([$streetAddress, $ward, $city]));
 
     if (empty($fullName))
@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$pageTitle = 'Thông tin cá nhân - WinK';
+$pageTitle = 'Thông tin cá nhân';
 $extraJS = ['address.js'];
 include dirname(__DIR__) . '/includes/header.php';
 ?>

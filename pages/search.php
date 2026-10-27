@@ -1,5 +1,4 @@
 <?php
-/** Trang tìm kiếm - WinK Shoe Store */
 require_once dirname(__DIR__) . '/config/config.php';
 
 $pdo = getDBConnection();

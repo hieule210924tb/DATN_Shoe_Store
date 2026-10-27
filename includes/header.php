@@ -1,9 +1,4 @@
 <?php
-
-/**
- * Header - WinK Shoe Store
- * Include ở đầu mỗi trang User
- */
 if (!defined('BASE_URL')) {
     require_once dirname(__DIR__) . '/config/config.php';
 }

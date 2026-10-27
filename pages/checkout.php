@@ -39,9 +39,9 @@ foreach ($cartItems as $item) {
 
 // Phí vận chuyển theo phương thức
 $shippingMethod = $_POST['shipping_method'] ?? 'standard';
-$shippingFees   = [
+$shippingFees = [
     'standard' => SHIPPING_FEE_STANDARD,  // 0đ (miễn phí)
-    'express'  => SHIPPING_FEE_EXPRESS,   // 60.000đ
+    'express' => SHIPPING_FEE_EXPRESS,  // 60.000đ
 ];
 $shippingFee = $shippingFees[$shippingMethod] ?? SHIPPING_FEE_STANDARD;
 
@@ -61,16 +61,16 @@ $appliedVoucher = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fullName = trim($_POST['full_name'] ?? '');
     $phone = trim($_POST['phone'] ?? '');
-    $city = trim($_POST['city'] ?? '');          // tên tỉnh/thành (từ hidden)
-    $ward = trim($_POST['ward'] ?? '');           // tên xã/phường (từ hidden)
-    $streetAddress = trim($_POST['street_address'] ?? ''); // số nhà, tên đường
+    $city = trim($_POST['city'] ?? '');  // tên tỉnh/thành (từ hidden)
+    $ward = trim($_POST['ward'] ?? '');  // tên xã/phường (từ hidden)
+    $streetAddress = trim($_POST['street_address'] ?? '');  // số nhà, tên đường
     // Ghép địa chỉ đầy đủ
     $address = implode(', ', array_filter([$streetAddress, $ward, $city]));
-    $paymentMethod  = $_POST['payment_method']  ?? 'cod';
-    $shippingMethod = $_POST['shipping_method']  ?? 'standard';
-    $shippingFee    = $shippingFees[$shippingMethod] ?? SHIPPING_FEE_STANDARD;
-    $voucherCode    = trim($_POST['voucher_code'] ?? '');
-    $note           = trim($_POST['note']         ?? '');
+    $paymentMethod = $_POST['payment_method'] ?? 'cod';
+    $shippingMethod = $_POST['shipping_method'] ?? 'standard';
+    $shippingFee = $shippingFees[$shippingMethod] ?? SHIPPING_FEE_STANDARD;
+    $voucherCode = trim($_POST['voucher_code'] ?? '');
+    $note = trim($_POST['note'] ?? '');
 
     // Validate
     if (empty($fullName))
@@ -124,16 +124,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // VNPay/MoMo → pending/unpaid cho đến khi gateway xác nhận
             // COD → pending/unpaid, xác nhận thủ công
-            $initialStatus        = 'pending';
+            $initialStatus = 'pending';
             $initialPaymentStatus = 'unpaid';
 
             try {
-                $stmtOrder = $pdo->prepare("
+                $stmtOrder = $pdo->prepare('
                     INSERT INTO orders (user_id, order_code, full_name, phone, city, address, note, 
                         subtotal, shipping_fee, discount_amount, voucher_id, total_amount, 
                         payment_method, payment_status, status)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ");
+                ');
                 $stmtOrder->execute([
                     $userId, $orderCode, $fullName, $phone, $city, $address, $note,
                     $subtotal, $shippingFee, $voucherDiscount,
@@ -141,12 +141,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $totalAmount, $paymentMethod, $initialPaymentStatus, $initialStatus
                 ]);
             } catch (PDOException $exOrder) {
-                $stmtOrder = $pdo->prepare("
+                $stmtOrder = $pdo->prepare('
                     INSERT INTO orders (user_id, order_code, receiver_name, receiver_phone, receiver_province, receiver_address, note, 
                         subtotal, shipping_fee, discount_amount, voucher_id, total_amount, 
                         payment_method, payment_status, status)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ");
+                ');
                 $stmtOrder->execute([
                     $userId, $orderCode, $fullName, $phone, $city, $address, $note,
                     $subtotal, $shippingFee, $voucherDiscount,
@@ -413,7 +413,7 @@ include dirname(__DIR__) . '/includes/header.php';
                             <strong id="total-display" style="color:var(--primary);font-size:22px;"><?php echo formatPrice($subtotal + $shippingFee - $voucherDiscount); ?></strong>
                         </div>
                         
-                        <button type="submit" class="btn-wink w-100 justify-content-center" style="padding:14px;">
+                        <button id="checkout-submit" type="submit" class="btn-wink w-100 justify-content-center" style="padding:14px;">
                             <i class="fas fa-check-circle me-1"></i> Đặt hàng
                         </button>
                     </div>
@@ -431,8 +431,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Cập nhật phí ship + tổng khi đổi phương thức vận chuyển
-    const subtotal       = <?php echo (int)$subtotal; ?>;
-    const voucherDiscount= <?php echo (int)$voucherDiscount; ?>;
+    const subtotal       = <?php echo (int) $subtotal; ?>;
+    const voucherDiscount= <?php echo (int) $voucherDiscount; ?>;
     const feeStandard    = <?php echo SHIPPING_FEE_STANDARD; ?>;
     const feeExpress     = <?php echo SHIPPING_FEE_EXPRESS; ?>;
 
@@ -461,7 +461,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ── Payment method highlight & notice ──
     const paymentRadios = document.querySelectorAll('input[name="payment_method"]');
-    const submitBtn     = document.querySelector('button[type="submit"]');
+    const submitBtn = document.getElementById('checkout-submit');
     const notice        = document.getElementById('online-payment-notice');
 
     function updatePaymentUI() {

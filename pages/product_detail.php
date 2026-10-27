@@ -215,6 +215,9 @@ include dirname(__DIR__) . '/includes/header.php';
                         <button class="btn-wink" onclick="addProductToCart()" id="btnAddToCart">
                             <i class="fas fa-shopping-cart"></i> Thêm vào giỏ
                         </button>
+                        <button class="btn-wink btn-wink-primary ms-2" id="btnBuyNow" onclick="buyNow()">
+                            <i class="fas fa-credit-card me-1"></i> Đặt hàng ngay
+                        </button>
                         <button class="btn-wink-outline <?php echo $isInWishlist ? 'wishlist-active-btn' : ''; ?>" 
                                 onclick="toggleWishlist(<?php echo $product['id']; ?>, this)" id="btnWishlist"
                                 style="flex: 0 0 auto; padding: 13px 18px;">
@@ -400,6 +403,17 @@ function addProductToCart() {
     }
     const qty = parseInt(document.getElementById('qtyInput').value);
     addToCart(<?php echo $product['id']; ?>, parseInt(selectedVariantId), qty);
+}
+
+function buyNow() {
+    if (!selectedVariantId) {
+        showToast('warning', 'Vui lòng chọn size trước khi đặt hàng.');
+        return;
+    }
+    const qty = parseInt(document.getElementById('qtyInput').value);
+    addToCart(<?php echo $product['id']; ?>, parseInt(selectedVariantId), qty);
+    window.location.href = '<?php echo url('pages/checkout.php'); ?>';
+
 }
 </script>
 

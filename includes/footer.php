@@ -1,5 +1,4 @@
 <?php
-/** Footer - WinK Shoe Store */
 ?>
     </main>
 

@@ -1,8 +1,4 @@
 <?php
-/**
- * Navbar - WinK Shoe Store
- * Thanh điều hướng chính
- */
 $cartCount = isLoggedIn() ? getCartItemCount() : 0;
 $wishlistCount = isLoggedIn() ? getWishlistCount() : 0;
 $currentPage = basename($_SERVER['PHP_SELF']);
