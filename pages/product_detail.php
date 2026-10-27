@@ -269,6 +269,26 @@ include dirname(__DIR__) . '/includes/header.php';
                                 <?php if (!empty($review['image'])): ?>
                                     <img class="review-image" src="<?php echo REVIEW_UPLOAD_URL . '/' . e($review['image']); ?>" alt="Ảnh đánh giá">
                                 <?php endif; ?>
+
+                                <?php if (!empty($review['admin_reply'])): ?>
+                                <!-- Phản hồi của cửa hàng -->
+                                <div style="margin-top:14px;background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-left:4px solid #22c55e;border-radius:0 10px 10px 0;padding:14px 16px;">
+                                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                                        <div style="width:28px;height:28px;background:linear-gradient(135deg,#22c55e,#16a34a);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                                            <i class="fas fa-store" style="color:#fff;font-size:12px;"></i>
+                                        </div>
+                                        <div>
+                                            <span style="font-weight:700;font-size:13px;color:#15803d;">Phản hồi từ WinK Store</span>
+                                            <?php if (!empty($review['reply_at'])): ?>
+                                            <span style="font-size:11px;color:#86efac;margin-left:8px;">
+                                                · <?php echo formatDate($review['reply_at'], 'd/m/Y'); ?>
+                                            </span>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                    <p style="margin:0;font-size:13px;color:#166534;line-height:1.7;white-space:pre-line;"><?php echo nl2br(e($review['admin_reply'])); ?></p>
+                                </div>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
