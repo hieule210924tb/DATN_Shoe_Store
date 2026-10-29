@@ -241,11 +241,34 @@ include dirname(__DIR__) . '/includes/header.php';
         <!-- Reviews Section -->
         <div class="mt-5">
             <div class="bg-white rounded-3 p-4 shadow-sm">
+                <div class="d-flex justify-content-between align-items-center">
                 <h4 class="fw-bold mb-4">
                     <i class="fas fa-star me-2" style="color:#ffc107;"></i>
                     Đánh giá sản phẩm (<?php echo $product['total_reviews']; ?>)
                 </h4>
-                
+                <?php
+                if ($product['total_reviews'] > 0):
+                    $avgRating = round($product['avg_rating'], 1);
+                    ?>
+                <!-- Rating Summary -->
+                <div class="rating-summary mb-4">
+                    <div class="rating-avg-stars">
+                        <?php for ($i = 1; $i <= 5; $i++):
+                            $diff = $avgRating - $i + 1;
+                            if ($diff >= 1): ?>
+                                <i class="fas fa-star"></i>
+                            <?php elseif ($diff > 0): ?>
+                                <i class="fas fa-star-half-alt"></i>
+                            <?php else: ?>
+                                <i class="far fa-star"></i>
+                            <?php endif; ?>
+                        <?php endfor; ?>
+                    </div>
+                    <div class="rating-avg-label"><?php echo $avgRating; ?>/5 · <?php echo $product['total_reviews']; ?> đánh giá</div>
+                </div>
+                </div>
+                <?php endif; ?>
+
                 <?php if (!empty($reviews)): ?>
                     <?php foreach ($reviews as $review): ?>
                     <div class="review-item">
