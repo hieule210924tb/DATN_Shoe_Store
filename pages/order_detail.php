@@ -262,7 +262,7 @@ include dirname(__DIR__) . '/includes/header.php';
                     </button>
                     <?php endif; ?>
 
-                    <?php if ($order['payment_status'] === 'unpaid' && $order['status'] === 'pending' && in_array($order['payment_method'], ['vnpay', 'momo'])): ?>
+                    <?php if ($order['payment_status'] === 'unpaid' && $order['status'] === 'pending' && in_array($order['payment_method'], ['vnpay'])): ?>
                     <a href="<?php echo url('payment/' . $order['payment_method'] . '_create.php?order_id=' . $order['id']); ?>" 
                        class="btn btn-warning w-100 mt-2 fw-bold">
                         <i class="fas fa-redo me-1"></i>Thanh toán lại
@@ -278,9 +278,9 @@ include dirname(__DIR__) . '/includes/header.php';
     </div>
 </section>
 
-<!-- ═══════════════════════════════════════════════════════
-     MODAL ĐÁNH GIÁ SẢN PHẨM
-═══════════════════════════════════════════════════════ -->
+
+     <!-- MODAL ĐÁNH GIÁ SẢN PHẨM -->
+
 <div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="border-radius:16px;overflow:hidden;border:none;">

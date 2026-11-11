@@ -560,7 +560,6 @@ function getPaymentMethodText($method)
     $methods = [
         'cod' => 'Thanh toán khi nhận hàng (COD)',
         'vnpay' => 'VNPay',
-        'momo' => 'MoMo',
     ];
     return $methods[$method] ?? $method;
 }

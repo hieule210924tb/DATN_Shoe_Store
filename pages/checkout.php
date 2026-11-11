@@ -121,7 +121,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Tạo đơn hàng
             $orderCode = generateOrderCode();
 
-            // VNPay/MoMo → pending/unpaid cho đến khi gateway xác nhận
+            // VNPay → pending/unpaid cho đến khi gateway xác nhận
+// COD → pending/unpaid, xác nhận thủ công
             // COD → pending/unpaid, xác nhận thủ công
             $initialStatus = 'pending';
             $initialPaymentStatus = 'unpaid';
@@ -196,11 +197,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $pdo->commit();
 
-            // Với VNPay/MoMo → chuyển tới cổng thanh toán
+            // Với VNPay → chuyển tới cổng thanh toán
             if ($paymentMethod === 'vnpay') {
                 redirect(url('payment/vnpay_create.php?order_id=' . $orderId));
-            } elseif ($paymentMethod === 'momo') {
-                redirect(url('payment/momo_create.php?order_id=' . $orderId));
             } else {
                 setFlashMessage('success', "Đặt hàng thành công! Mã đơn hàng: $orderCode. Chúng tôi sẽ xác nhận sớm nhất.");
                 redirect(url('pages/order_detail.php?id=' . $orderId));
@@ -335,20 +334,7 @@ include dirname(__DIR__) . '/includes/header.php';
                                 <span class="ms-auto badge" style="background:#0066b3;font-size:10px;">Nhanh</span>
                             </label>
 
-                            <label class="payment-option d-flex align-items-center gap-3 p-3 rounded-3 border" style="cursor:pointer;" id="label-momo">
-                                <input type="radio" name="payment_method" value="momo" class="form-check-input" id="pm-momo">
-                                <div class="d-flex align-items-center justify-content-center rounded-2" style="width:40px;height:40px;background:#fce4ec;flex-shrink:0;">
-                                    <svg width="28" height="28" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                                        <circle cx="50" cy="50" r="48" fill="#a50064"/>
-                                        <text x="50" y="65" text-anchor="middle" font-family="Arial" font-weight="bold" font-size="36" fill="white">M</text>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <strong>Ví MoMo</strong>
-                                    <br><small class="text-muted">Thanh toán qua ứng dụng MoMo, QR Code</small>
-                                </div>
-                                <span class="ms-auto badge" style="background:#a50064;font-size:10px;">Phổ biến</span>
-                            </label>
+                            
 
                         </div>
 

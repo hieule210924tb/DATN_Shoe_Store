@@ -70,14 +70,6 @@ define('VNPAY_URL', 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html');
 define('VNPAY_RETURN_URL', BASE_URL . '/payment/vnpay_return.php');
 define('VNPAY_IPN_URL', BASE_URL . '/payment/vnpay_return.php');
 
-// Cấu hình MoMo Sandbox
-// Tài liệu: https://developers.momo.vn/
-define('MOMO_PARTNER_CODE', 'MOMO');  // Partner code sandbox
-define('MOMO_ACCESS_KEY', 'F8BBA842ECF85');  // Access key sandbox
-define('MOMO_SECRET_KEY', 'K951B6PE1waDMi640xX08PD3vg6EkVlz');  // Secret sandbox
-define('MOMO_ENDPOINT', 'https://test-payment.momo.vn/v2/gateway/api/create');
-define('MOMO_RETURN_URL', BASE_URL . '/payment/momo_return.php');
-define('MOMO_NOTIFY_URL', BASE_URL . '/payment/momo_notify.php');
 
 // Cấu hình gửi Email (Gmail SMTP qua PHPMailer)
 // *** Bật xác minh 2 bước cho Gmail, rồi tạo App Password tại https://myaccount.google.com/apppasswords ***

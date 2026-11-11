@@ -164,9 +164,11 @@ $paymentData = $pdo->prepare("
 $paymentData->execute([$tsFrom, $tsTo]);
 $paymentRows = $paymentData->fetchAll(PDO::FETCH_KEY_PAIR);
 
-$payLabels = ['COD', 'VNPay', 'MoMo'];
-$payKeys   = ['cod', 'vnpay', 'momo'];
-$payColors = ['#6c757d', '#0066cc', '#a50064'];
+
+$payLabels = ['COD', 'VNPay'];
+$payKeys   = ['cod', 'vnpay'];
+$payColors = ['#6c757d', '#0066cc'];
+
 $payCounts = array_map(fn($k) => (int)($paymentRows[$k] ?? 0), $payKeys);
 
 // ══════════════════════════════════════════════════════════════════
