@@ -1,5 +1,4 @@
 <?php
-/** Trang thanh toán - WinK Shoe Store */
 require_once dirname(__DIR__) . '/config/config.php';
 require_once dirname(__DIR__) . '/includes/auth_check.php';
 
@@ -61,8 +60,8 @@ $appliedVoucher = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fullName = trim($_POST['full_name'] ?? '');
     $phone = trim($_POST['phone'] ?? '');
-    $city = trim($_POST['city'] ?? '');  // tên tỉnh/thành (từ hidden)
-    $ward = trim($_POST['ward'] ?? '');  // tên xã/phường (từ hidden)
+    $city = trim($_POST['city'] ?? '');  // tên tỉnh
+    $ward = trim($_POST['ward'] ?? '');  // tên xã
     $streetAddress = trim($_POST['street_address'] ?? '');  // số nhà, tên đường
     // Ghép địa chỉ đầy đủ
     $address = implode(', ', array_filter([$streetAddress, $ward, $city]));

@@ -1,7 +1,5 @@
 <?php
-/**
- * Trang Đăng Nhập - WinK Shoe Store
- */
+/** Trang Đăng Nhập - WinK Shoe Store */
 require_once dirname(__DIR__) . '/config/config.php';
 
 // Nếu đã đăng nhập thì chuyển hướng
@@ -21,24 +19,24 @@ $email = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
-    
+
     // Validate
     if (empty($email)) {
         $errors['email'] = 'Vui lòng nhập email.';
     } elseif (!isValidEmail($email)) {
         $errors['email'] = 'Email không hợp lệ.';
     }
-    
+
     if (empty($password)) {
         $errors['password'] = 'Vui lòng nhập mật khẩu.';
     }
-    
+
     if (empty($errors)) {
         $pdo = getDBConnection();
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");
+        $stmt = $pdo->prepare('SELECT * FROM users WHERE email = ?');
         $stmt->execute([$email]);
         $user = $stmt->fetch();
-        
+
         if ($user && password_verify($password, $user['password'])) {
             // Kiểm tra tài khoản bị khóa
             if ($user['status'] === 'locked') {
@@ -50,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['user_email'] = $user['email'];
                 $_SESSION['user_role'] = $user['role'];
                 $_SESSION['user_avatar'] = $user['avatar'];
-                
+
                 // Chuyển hướng theo role
                 if ($user['role'] === 'admin') {
                     setFlashMessage('success', 'Chào mừng Admin ' . $user['full_name'] . '!');
@@ -128,12 +126,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                     </div>
                     
-                    <!-- Remember & Forgot -->
+                    <!--  Forgot -->
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="remember" name="remember">
-                            <label class="form-check-label" for="remember" style="font-size:13px;">Ghi nhớ đăng nhập</label>
-                        </div>
                         <a href="<?php echo url('auth/forgot_password.php'); ?>" style="font-size:13px;">Quên mật khẩu?</a>
                     </div>
                     

@@ -40,8 +40,15 @@ $stmtFeatured = $pdo->query("
 ");
 $featuredProducts = $stmtFeatured->fetchAll();
 
-// Lấy danh mục
-$stmtCategories = $pdo->query("SELECT * FROM categories WHERE status = 'active' ORDER BY name");
+// Lấy danh mục + số sản phẩm
+$stmtCategories = $pdo->query("
+    SELECT c.*, COUNT(p.id) as product_count
+    FROM categories c
+    LEFT JOIN products p ON p.category_id = c.id AND p.status = 'active'
+    WHERE c.status = 'active'
+    GROUP BY c.id
+    ORDER BY c.name
+");
 $categories = $stmtCategories->fetchAll();
 
 // Lấy thương hiệu
@@ -233,42 +240,72 @@ include __DIR__ . '/includes/header.php';
     </div>
 </section>
 
-<!-- ═══════════════════════════════════════
-     CATEGORIES — Modern card grid
-     ═══════════════════════════════════════ -->
 <?php if (!empty($categories)): ?>
-<section class="hp-section">
+<section class="hp-section hp-cat-section">
     <div class="container">
         <div class="hp-section-head reveal-up">
             <div class="hp-section-tag">Danh Mục</div>
             <h2 class="hp-section-title">Khám Phá Theo Phong Cách</h2>
             <p class="hp-section-sub">Tìm kiếm đôi giày hoàn hảo cho từng dịp của bạn</p>
         </div>
-        <div class="row g-3 justify-content-center reveal-stagger">
+
+        <div class="hp-cat-track reveal-stagger">
             <?php
-            $catConfig = [
-                ['icon' => 'fas fa-running',    'color' => '#ff5e00', 'bg' => '#fff6f0'],
-                ['icon' => 'fas fa-shoe-prints', 'color' => '#8b5cf6', 'bg' => '#f5f3ff'],
-                ['icon' => 'fas fa-star',        'color' => '#f59e0b', 'bg' => '#fffbeb'],
-                ['icon' => 'fas fa-briefcase',   'color' => '#0ea5e9', 'bg' => '#f0f9ff'],
-                ['icon' => 'fas fa-hiking',      'color' => '#10b981', 'bg' => '#ecfdf5'],
-                ['icon' => 'fas fa-tshirt',      'color' => '#ec4899', 'bg' => '#fdf2f8'],
+            $catMap = [
+                ['keys' => ['bong', 'football', 'soccer'], 'img' => 'cat_football.jpg', 'grad' => 'linear-gradient(135deg,#15803d,#22c55e)', 'glow' => 'rgba(34,197,94,0.30)'],
+                ['keys' => ['chay', 'running'], 'img' => 'cat_running.jpg', 'grad' => 'linear-gradient(135deg,#ea580c,#f97316)', 'glow' => 'rgba(249,115,22,0.30)'],
+                ['keys' => ['thao', 'sport'], 'img' => 'cat_sport.jpg', 'grad' => 'linear-gradient(135deg,#0369a1,#38bdf8)', 'glow' => 'rgba(56,189,248,0.30)'],
+                ['keys' => ['sneaker'], 'img' => 'cat_sneaker.jpg', 'grad' => 'linear-gradient(135deg,#6d28d9,#a78bfa)', 'glow' => 'rgba(167,139,250,0.30)'],
+                ['keys' => ['boot', 'bot'], 'img' => 'cat_boot.jpg', 'grad' => 'linear-gradient(135deg,#92400e,#d97706)', 'glow' => 'rgba(217,119,6,0.30)'],
+                ['keys' => ['luoi', 'loafer', 'slip'], 'img' => 'cat_sneaker.jpg', 'grad' => 'linear-gradient(135deg,#0d9488,#34d399)', 'glow' => 'rgba(52,211,153,0.30)'],
+                ['keys' => ['got', 'heel', 'oxford', 'formal'], 'img' => 'cat_leather.jpg', 'grad' => 'linear-gradient(135deg,#be185d,#f472b6)', 'glow' => 'rgba(244,114,182,0.30)'],
+                ['keys' => ['sandal', 'dep'], 'img' => 'cat_sport.jpg', 'grad' => 'linear-gradient(135deg,#b45309,#fbbf24)', 'glow' => 'rgba(251,191,36,0.30)'],
+                ['keys' => ['da', 'leather', 'kids', 'tre', 'em'], 'img' => 'cat_leather.jpg', 'grad' => 'linear-gradient(135deg,#292524,#57534e)', 'glow' => 'rgba(87,83,78,0.30)'],
             ];
-            foreach ($categories as $index => $category):
-                $cfg = $catConfig[$index % count($catConfig)];
-            ?>
-            <div class="col-6 col-sm-4 col-md-3 col-lg-2">
-                <a href="<?php echo url('pages/products.php?category=' . e($category['slug'])); ?>"
-                   class="hp-cat-card"
-                   style="--cat-color:<?php echo $cfg['color']; ?>; --cat-bg:<?php echo $cfg['bg']; ?>">
-                    <div class="hp-cat-icon">
-                        <i class="<?php echo $cfg['icon']; ?>"></i>
-                    </div>
-                    <span class="hp-cat-name"><?php echo e($category['name']); ?></span>
-                    <div class="hp-cat-arrow"><i class="fas fa-arrow-right"></i></div>
-                </a>
-            </div>
+            $fallbackIdx = 0;
+
+            foreach ($categories as $category):
+                // Tách slug thành các token riêng lẻ → tránh false-match kiểu 'da' khớp 'da-bong'
+                $tokens = array_filter(preg_split('/[-_ ]+/', strtolower($category['slug'] ?? '') . ' ' . strtolower($category['name'] ?? '')));
+                $cfg = null;
+                foreach ($catMap as $entry) {
+                    foreach ($tokens as $token) {
+                        if (in_array($token, $entry['keys'])) {
+                            $cfg = $entry;
+                            break 2;
+                        }
+                    }
+                }
+                if (!$cfg) {
+                    $allImgs = array_column($catMap, 'img');
+                    $cfg = $catMap[$fallbackIdx % count($catMap)];
+                    $fallbackIdx++;
+                }
+                $productCount = (int) ($category['product_count'] ?? 0);
+                $imgUrl = url('assets/images/icons/' . $cfg['img']);
+                ?>
+
+            <a href="<?php echo url('pages/products.php?category=' . e($category['slug'])); ?>"
+               class="hp-cat2-card"
+               style="--cat-grad:<?php echo $cfg['grad']; ?>; --cat-glow:<?php echo $cfg['glow']; ?>">
+                <!-- Glow overlay -->
+                <span class="hp-cat2-glow"></span>
+                <!-- Shoe image bubble -->
+                <span class="hp-cat2-bubble">
+                    <img src="<?php echo $imgUrl; ?>"
+                         alt="<?php echo e($category['name']); ?>"
+                         class="hp-cat2-img">
+                </span>
+                <!-- Name -->
+                <span class="hp-cat2-name"><?php echo e($category['name']); ?></span>
+                <?php if ($productCount > 0): ?>
+                <span class="hp-cat2-count"><?php echo $productCount; ?> sản phẩm</span>
+                <?php endif; ?>
+                <!-- Arrow -->
+                <span class="hp-cat2-go"><i class="fas fa-chevron-right"></i></span>
+            </a>
             <?php endforeach; ?>
+
         </div>
     </div>
 </section>

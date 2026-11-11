@@ -4,15 +4,15 @@ include dirname(__DIR__) . '/includes/admin_header.php';
 
 $pdo = getDBConnection();
 
-// ── Tham số lọc / tìm kiếm / phân trang ─────────────────────────
+// ── Tham số lọc / tìm kiếm / phân trang
 $search = trim($_GET['search'] ?? '');
 $ratingFilter = (int) ($_GET['rating'] ?? 0);
-$replyFilter  = $_GET['replied'] ?? '';  // 'yes' | 'no' | ''
+$replyFilter = $_GET['replied'] ?? '';  // 'yes' | 'no' | ''
 $perPage = 15;
 $currentPage = max(1, (int) ($_GET['page'] ?? 1));
 $offset = ($currentPage - 1) * $perPage;
 
-// ── WHERE clause ─────────────────────────────────────────────────
+// ── WHERE
 $where = ['1=1'];
 $params = [];
 
@@ -221,7 +221,7 @@ $baseUrl = url('admin/reviews/list.php')
                         <select name="replied" id="replied_filter" class="form-control" onchange="this.form.submit()">
                             <option value="">-- Trạng thái phản hồi --</option>
                             <option value="yes" <?php echo $replyFilter === 'yes' ? 'selected' : ''; ?>>Đã phản hồi</option>
-                            <option value="no"  <?php echo $replyFilter === 'no'  ? 'selected' : ''; ?>>Chưa phản hồi</option>
+                            <option value="no"  <?php echo $replyFilter === 'no' ? 'selected' : ''; ?>>Chưa phản hồi</option>
                         </select>
                     </div>
 

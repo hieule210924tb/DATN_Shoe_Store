@@ -1,15 +1,13 @@
 <?php
-/**
- * Admin - Quản lý biến thể sản phẩm (Size, Color, Stock)
- */
+/** Admin - Quản lý biến thể sản phẩm (Size, Color, Stock) */
 require_once dirname(dirname(__DIR__)) . '/includes/admin_check.php';
 
 $pageTitle = 'Biến thể sản phẩm - WinK Admin';
 
 $pdo = getDBConnection();
-$productId = (int)($_GET['id'] ?? 0);
+$productId = (int) ($_GET['id'] ?? 0);
 
-$stmt = $pdo->prepare("SELECT * FROM products WHERE id = ?");
+$stmt = $pdo->prepare('SELECT * FROM products WHERE id = ?');
 $stmt->execute([$productId]);
 $product = $stmt->fetch();
 
@@ -21,21 +19,21 @@ if (!$product) {
 // Xử lý thêm biến thể
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
-    
+
     if ($action === 'add') {
         $size = trim($_POST['size'] ?? '');
         $color = trim($_POST['color'] ?? '');
-        $stock = (int)($_POST['stock_quantity'] ?? 0);
+        $stock = (int) ($_POST['stock_quantity'] ?? 0);
         $sku = trim($_POST['sku'] ?? '') ?: null;
-        
+
         if (!empty($size) && !empty($color)) {
             // Kiểm tra trùng
-            $stmtCheck = $pdo->prepare("SELECT id FROM product_variants WHERE product_id = ? AND size = ? AND color = ?");
+            $stmtCheck = $pdo->prepare('SELECT id FROM product_variants WHERE product_id = ? AND size = ? AND color = ?');
             $stmtCheck->execute([$productId, $size, $color]);
             if ($stmtCheck->fetch()) {
                 setFlashMessage('error', "Biến thể Size $size - Màu $color đã tồn tại.");
             } else {
-                $stmtInsert = $pdo->prepare("INSERT INTO product_variants (product_id, size, color, stock_quantity, sku) VALUES (?, ?, ?, ?, ?)");
+                $stmtInsert = $pdo->prepare('INSERT INTO product_variants (product_id, size, color, stock_quantity, sku) VALUES (?, ?, ?, ?, ?)');
                 $stmtInsert->execute([$productId, $size, $color, $stock, $sku]);
                 setFlashMessage('success', 'Thêm biến thể thành công!');
             }
@@ -43,29 +41,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             setFlashMessage('error', 'Vui lòng nhập đầy đủ Size và Màu.');
         }
     } elseif ($action === 'update') {
-        $variantId = (int)($_POST['variant_id'] ?? 0);
-        $stock = (int)($_POST['stock_quantity'] ?? 0);
+        $variantId = (int) ($_POST['variant_id'] ?? 0);
+        $stock = (int) ($_POST['stock_quantity'] ?? 0);
         $sku = trim($_POST['sku'] ?? '') ?: null;
-        
-        $stmtUpdate = $pdo->prepare("UPDATE product_variants SET stock_quantity = ?, sku = ? WHERE id = ? AND product_id = ?");
+
+        $stmtUpdate = $pdo->prepare('UPDATE product_variants SET stock_quantity = ?, sku = ? WHERE id = ? AND product_id = ?');
         $stmtUpdate->execute([$stock, $sku, $variantId, $productId]);
         setFlashMessage('success', 'Cập nhật biến thể thành công!');
     } elseif ($action === 'delete') {
-        $variantId = (int)($_POST['variant_id'] ?? 0);
-        $pdo->prepare("DELETE FROM product_variants WHERE id = ? AND product_id = ?")->execute([$variantId, $productId]);
-        setFlashMessage('success', 'Xóa biến thể thành công!');
+        $variantId = (int) ($_POST['variant_id'] ?? 0);
+        try {
+            $pdo->beginTransaction();
+            $stmtDelCart = $pdo->prepare('DELETE FROM cart_items WHERE variant_id = ?');
+            $stmtDelCart->execute([$variantId]);
+
+            $stmtDelReviews = $pdo->prepare('DELETE FROM product_reviews WHERE order_item_id IN (SELECT id FROM order_items WHERE variant_id = ?)');
+            $stmtDelReviews->execute([$variantId]);
+
+            // Delete any order items referencing this variant (if business allows)
+            $stmtDelOrder = $pdo->prepare('DELETE FROM order_items WHERE variant_id = ?');
+            $stmtDelOrder->execute([$variantId]);
+            $stmtDelOrder = $pdo->prepare('DELETE FROM order_items WHERE variant_id = ?');
+            $stmtDelOrder->execute([$variantId]);
+            $stmtDelCart = $pdo->prepare('DELETE FROM cart_items WHERE variant_id = ?');
+            $stmtDelCart->execute([$variantId]);
+
+            // Then delete the variant itself
+            $stmtDelVar = $pdo->prepare('DELETE FROM product_variants WHERE id = ? AND product_id = ?');
+            $stmtDelVar->execute([$variantId, $productId]);
+
+            $pdo->commit();
+            setFlashMessage('success', 'Xóa biến thể thành công!');
+        } catch (Throwable $e) {
+            $pdo->rollBack();
+            setFlashMessage('error', 'Xóa biến thể thất bại: ' . $e->getMessage());
+        }
     } elseif ($action === 'bulk_add') {
         $colors = array_filter(array_map('trim', explode(',', $_POST['colors'] ?? '')));
         $sizes = array_filter(array_map('trim', explode(',', $_POST['sizes'] ?? '')));
-        $defaultStock = (int)($_POST['default_stock'] ?? 10);
+        $defaultStock = (int) ($_POST['default_stock'] ?? 10);
         $count = 0;
-        
+
         foreach ($colors as $color) {
             foreach ($sizes as $size) {
-                $stmtCheck = $pdo->prepare("SELECT id FROM product_variants WHERE product_id = ? AND size = ? AND color = ?");
+                $stmtCheck = $pdo->prepare('SELECT id FROM product_variants WHERE product_id = ? AND size = ? AND color = ?');
                 $stmtCheck->execute([$productId, $size, $color]);
                 if (!$stmtCheck->fetch()) {
-                    $pdo->prepare("INSERT INTO product_variants (product_id, size, color, stock_quantity) VALUES (?, ?, ?, ?)")
+                    $pdo
+                        ->prepare('INSERT INTO product_variants (product_id, size, color, stock_quantity) VALUES (?, ?, ?, ?)')
                         ->execute([$productId, $size, $color, $defaultStock]);
                     $count++;
                 }
@@ -73,12 +96,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         setFlashMessage('success', "Đã thêm $count biến thể mới!");
     }
-    
+
     redirect(url('admin/products/variants.php?id=' . $productId));
 }
 
 // Lấy biến thể
-$variants = $pdo->prepare("SELECT * FROM product_variants WHERE product_id = ? ORDER BY color, CAST(size AS UNSIGNED)");
+$variants = $pdo->prepare('SELECT * FROM product_variants WHERE product_id = ? ORDER BY color, CAST(size AS UNSIGNED)');
 $variants->execute([$productId]);
 $variants = $variants->fetchAll();
 

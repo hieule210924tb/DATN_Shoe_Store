@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Cart Drawer (Sidebar) - WinK Shoe Store
  * Ngăn kéo giỏ hàng bên phải
@@ -37,7 +38,7 @@
             <i class="fas fa-shopping-cart"></i> Xem giỏ hàng
         </a>
         <a href="<?php echo url('pages/checkout.php'); ?>" class="btn-wink w-100 justify-content-center">
-            <i class="fas fa-credit-card"></i> Thanh toán
+            <i class="fas fa-credit-card"></i> Đặt hàng
         </a>
     </div>
 </div>

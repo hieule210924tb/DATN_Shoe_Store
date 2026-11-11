@@ -51,7 +51,7 @@ include dirname(__DIR__) . '/includes/header.php';
                 <h4 class="fw-bold">Kết quả tìm kiếm cho "<?php echo e($query); ?>"</h4>
                 <p class="text-muted">Tìm thấy <strong><?php echo $totalProducts; ?></strong> sản phẩm</p>
             </div>
-            
+
             <?php if (!empty($products)): ?>
                 <div class="row g-3">
                     <?php foreach ($products as $product): ?>
