@@ -6,7 +6,7 @@ $currentDir = basename(dirname($_SERVER['PHP_SELF']));
 // Số tin nhắn chat chưa đọc (hiển thị badge)
 $chatUnreadTotal = 0;
 try {
-    $chatUnreadTotal = (int)getDBConnection()->query("SELECT COALESCE(SUM(unread_by_admin), 0) FROM chat_conversations")->fetchColumn();
+    $chatUnreadTotal = (int) getDBConnection()->query('SELECT COALESCE(SUM(unread_by_admin), 0) FROM chat_conversations')->fetchColumn();
 } catch (Exception $ex) {
     $chatUnreadTotal = 0;
 }
@@ -38,12 +38,12 @@ try {
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
                             <a href="<?php echo url('admin/products/list.php'); ?>" class="nav-link <?php echo $currentPage === 'list.php' && $currentDir === 'products' ? 'active' : ''; ?>">
-                                <i class="far fa-circle nav-icon"></i><p>Danh sách</p>
+                                <i class="far fa-circle nav-icon"></i><p>Danh sách sản phẩm</p>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="<?php echo url('admin/products/add.php'); ?>" class="nav-link <?php echo $currentPage === 'add.php' && $currentDir === 'products' ? 'active' : ''; ?>">
-                                <i class="far fa-circle nav-icon"></i><p>Thêm mới</p>
+                                <i class="far fa-circle nav-icon"></i><p>Thêm mới sản phẩm</p>
                             </a>
                         </li>
                     </ul>
@@ -58,17 +58,36 @@ try {
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
                             <a href="<?php echo url('admin/categories/list.php'); ?>" class="nav-link <?php echo $currentPage === 'list.php' && $currentDir === 'categories' ? 'active' : ''; ?>">
-                                <i class="far fa-circle nav-icon"></i><p>Danh sách</p>
+                                <i class="far fa-circle nav-icon"></i><p>Danh sách danh mục</p>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="<?php echo url('admin/categories/add.php'); ?>" class="nav-link <?php echo $currentPage === 'add.php' && $currentDir === 'categories' ? 'active' : ''; ?>">
-                                <i class="far fa-circle nav-icon"></i><p>Thêm mới</p>
+                                <i class="far fa-circle nav-icon"></i><p>Thêm mới danh mục</p>
                             </a>
                         </li>
                     </ul>
                 </li>
-                
+                 
+                <!-- Thương hiệu -->
+                <li class="nav-item <?php echo $currentDir === 'brands' ? 'menu-open' : ''; ?>">
+                    <a href="#" class="nav-link <?php echo $currentDir === 'brands' ? 'active' : ''; ?>">
+                        <i class="nav-icon fas fa-trademark"></i>
+                        <p>Thương hiệu <i class="right fas fa-angle-left"></i></p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="<?php echo url('admin/brands/list.php'); ?>" class="nav-link <?php echo $currentPage === 'list.php' && $currentDir === 'brands' ? 'active' : ''; ?>">
+                                <i class="far fa-circle nav-icon"></i><p>Danh sách thương hiệu</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="<?php echo url('admin/brands/add.php'); ?>" class="nav-link <?php echo $currentPage === 'add.php' && $currentDir === 'brands' ? 'active' : ''; ?>">
+                                <i class="far fa-circle nav-icon"></i><p>Thêm mới thương hiệu</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
                 <!-- Đơn hàng -->
                 <li class="nav-item">
                     <a href="<?php echo url('admin/orders/list.php'); ?>" class="nav-link <?php echo $currentDir === 'orders' ? 'active' : ''; ?>">
